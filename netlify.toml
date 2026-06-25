@@ -7,6 +7,9 @@
   node_bundler = "esbuild"
   included_files = []
 
+[functions."___netlify-server-handler"]
+  node_bundler = "nft"
+
 [[headers]]
   for = "/*"
   [headers.values]
