@@ -1,0 +1,6 @@
+{
+  "name": "Newsroom Lab",
+  "description": "A private sandbox to monitor, test, and refine AI journalists before public publishing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

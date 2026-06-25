@@ -1,0 +1,340 @@
+{
+  "journalists": [
+    {
+      "id": "anika-patel",
+      "name": "Anika Patel",
+      "website": "www.whatsoninmzansi.co.za",
+      "sections": [
+        "Food & Weekend Markets",
+        "Family & Kids Days Out"
+      ],
+      "role": "Lifestyle & Community Editor",
+      "tone": "Friendly, inclusive, enthusiastic, sensory-driven, helpful, and warm.",
+      "personality": "The Social Foodie. She focuses on community, food, family, markets, outdoor activities, and easy weekend plans.",
+      "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop",
+      "created_at": "2026-06-18T10:52:33.154Z"
+    }
+  ],
+  "articles": [
+    {
+      "id": "art-1782386614338",
+      "journalist_id": "anika-patel",
+      "title": "Smiles and Sunshine at Kirstenbosch Botanical Gardens",
+      "topic": "Kirstenbosch Family Concerts & Picnics",
+      "status": "idea",
+      "created_at": "2026-06-25T11:23:34.340Z",
+      "updated_at": "2026-06-25T11:23:34.340Z",
+      "featured_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "An essential guide to packing the ultimate Cape Town picnic hamper, finding the coolest canopy walkways, and enjoying open-air lawns with toddler-friendly slopes."
+      }
+    },
+    {
+      "id": "art-1782386613411",
+      "journalist_id": "anika-patel",
+      "title": "Smiles and Sunshine at Kirstenbosch Botanical Gardens",
+      "topic": "Kirstenbosch Family Concerts & Picnics",
+      "status": "idea",
+      "created_at": "2026-06-25T11:23:33.413Z",
+      "updated_at": "2026-06-25T11:23:33.413Z",
+      "featured_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "An essential guide to packing the ultimate Cape Town picnic hamper, finding the coolest canopy walkways, and enjoying open-air lawns with toddler-friendly slopes."
+      }
+    },
+    {
+      "id": "art-1782386612320",
+      "journalist_id": "anika-patel",
+      "title": "Explore Mzansi: Hotcakes ",
+      "topic": "Hotcakes ",
+      "status": "idea",
+      "created_at": "2026-06-25T11:23:32.322Z",
+      "updated_at": "2026-06-25T11:23:32.322Z",
+      "featured_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "A family-focused editorial adventure covering Hotcakes  with practical weekend hints."
+      }
+    },
+    {
+      "id": "art-1782386463410",
+      "journalist_id": "anika-patel",
+      "title": "Smiles and Sunshine at Kirstenbosch Botanical Gardens",
+      "topic": "Kirstenbosch Family Concerts & Picnics",
+      "status": "idea",
+      "created_at": "2026-06-25T11:21:03.412Z",
+      "updated_at": "2026-06-25T11:21:03.412Z",
+      "featured_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "An essential guide to packing the ultimate Cape Town picnic hamper, finding the coolest canopy walkways, and enjoying open-air lawns with toddler-friendly slopes."
+      }
+    },
+    {
+      "id": "art-1782386462537",
+      "journalist_id": "anika-patel",
+      "title": "Smiles and Sunshine at Kirstenbosch Botanical Gardens",
+      "topic": "Kirstenbosch Family Concerts & Picnics",
+      "status": "idea",
+      "created_at": "2026-06-25T11:21:02.538Z",
+      "updated_at": "2026-06-25T11:21:02.538Z",
+      "featured_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "An essential guide to packing the ultimate Cape Town picnic hamper, finding the coolest canopy walkways, and enjoying open-air lawns with toddler-friendly slopes."
+      }
+    },
+    {
+      "id": "art-1782386462069",
+      "journalist_id": "anika-patel",
+      "title": "Sensory Delights at the Shongweni Farmers Market",
+      "topic": "Shongweni Farmers Market in Durban",
+      "status": "idea",
+      "created_at": "2026-06-25T11:21:02.072Z",
+      "updated_at": "2026-06-25T11:21:02.072Z",
+      "featured_image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "A weekend culinary safari to Durban's favorite outdoor market, exploring farm cheese, local Zulu clay pottery, and pristine child-friendly nature walk trails."
+      }
+    },
+    {
+      "id": "art-001",
+      "journalist_id": "anika-patel",
+      "title": "Vibrant Saturday Morning at the Neighbourgoods Market",
+      "topic": "Neighbourgoods Market in Johannesburg",
+      "status": "approved_sandbox",
+      "created_at": "2026-06-22T10:52:33.154Z",
+      "updated_at": "2026-06-22T10:52:33.154Z",
+      "featured_image": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "To cover the bustling revival of the Neighbourgoods Market in Braamfontein, highlighting the artisanal foods, young designers, and live rooftop music that make it a essential Saturday family destination.",
+        "research_notes": "Neighbourgoods Market runs every Saturday from 9 AM to 3 PM. Known for multi-cultural food options (paella, dim sum, local biltong, craft burgers). Rooftop area offers craft beers, live DJ, and panoramic Jozi skyline views. Good playground corner for kids on the lower levels.",
+        "source_list": [
+          {
+            "name": "Neighbourgoods Market official site",
+            "url": "http://www.neighbourgoodsmarket.co.za",
+            "status": "verified",
+            "notes": "Confirmed hours: Saturday 9:00 - 15:00. Location: 73 Juta Street, Braamfontein."
+          },
+          {
+            "name": "Gauteng Tourism Authority",
+            "url": "https://www.gauteng.net",
+            "status": "verified",
+            "notes": "Provides security and parking recommendations for visitors to Braamfontein."
+          }
+        ],
+        "article_outline": "1. Introduction: The sensory wave of entering Braamfontein on a Saturday.\n2. Artisanal Food Scene: Walking the food stalls, from sweet koeksisters to woodfired flatbreads.\n3. Family & Kid Friendly features: Safe play areas and spacious seating.\n4. Rooftop Atmosphere: Music, local beers, and the scenic Jozi horizon.\n5. Summary & Tips: Parking, entry fees, and what to bring.",
+        "draft_article": "The moment you climb the concrete stairs of 73 Juta Street on a Saturday morning, a symphony of sounds and aromas wraps around you like a warm Gauteng hug. The Neighbourgoods Market in the heart of Braamfontein has officially reclaimed its spot as Johannesburg’s favorite weekend sensory playground.\n\nFrom the sizzling pans of giant Spanish paella to the sweet, spiced aroma of freshly fried Cape Malay koeksisters, your taste buds are in for a serious adventure. I started my morning chatting with local vendor Mama Grace, whose biltong is sliced so thin it practically melts. There’s something deeply special about knowing the hands that prepared your food.\n\nFor families, it’s not just a food stall run; it's a full-day experience. While older kids will love browsing the retro clothing stalls and local vinyl records, toddlers are kept thoroughly entertained in the lower-level creative zones with face painting and giant building blocks. \n\nBut the real magic happens on the rooftop deck. Grab a craft gin infused with local fynbos, find a spot on the communal wooden benches, and watch the JHB city skyline shimmer under the winter sun. As the local acoustic band strikes up their first chords, you'll look around at the beautiful, diverse crowd and realize this is exactly what Mzansi is all about: community, laughter, and incredible food.",
+        "edited_article": "The moment you climb the concrete stairs of 73 Juta Street on a Saturday morning, a symphony of sounds and aromas wraps around you like a warm Gauteng hug. The Neighbourgoods Market in the heart of Braamfontein has officially reclaimed its spot as Johannesburg’s favorite weekend sensory playground.\n\nFrom the sizzling pans of giant Spanish paella to the sweet, spiced aroma of freshly fried Cape Malay koeksisters, your taste buds are in for a serious adventure. I started my morning chatting with local vendor Mama Grace, whose local cured biltong is sliced so thin it practically melts. There’s something deeply special about knowing the hands that prepared your food.\n\nFor families, it’s not just a food stall run; it's a full-day experience. While older kids will love browsing the retro clothing stalls and local vinyl records, toddlers are kept thoroughly entertained in the lower-level creative zones with safe face painting and giant building blocks. \n\nBut the real magic happens on the rooftop deck. Grab a craft gin infused with local fynbos, find a spot on the communal wooden benches, and watch the JHB city skyline shimmer under the warm sun. As the local acoustic band strikes up their first chords, you'll look around at the beautiful, diverse crowd and realize this is exactly what Mzansi is all about: community, laughter, and incredible food.",
+        "fact_check_report": "FACT-CHECK PASSED:\n- Location '73 Juta Street, Braamfontein' is accurate.\n- Market schedule 'Saturdays' is verified.\n- Stall offerings match actual vendor directories.\n- No fabricated quotes detected; direct vendor mentions are verified.",
+        "bias_check_report": "BIAS-CHECK PASSED:\n- Neutral and appreciative tone towards all cultural foods.\n- Inclusive representation of Johannesburg’s urban demographics.\n- No gender, racial, or economic bias detected.",
+        "image_brief": "An editorial-style photo showing a family sitting on a wooden rooftop bench at Neighbourgoods Market in Johannesburg, laughing and eating artisanal market food. Warm sunlight, city skyline in background, lively atmosphere, 16:9 aspect ratio.",
+        "image_prompt": "A lively, colorful photograph of a modern family enjoying street food on a sunny rooftop market in Johannesburg, South Africa. In the background, the iconic city buildings are visible under a clear blue sky. Warm golden-hour lighting, cozy communal wooden tables, high detail, photorealistic, 16:9",
+        "image_quality_review": "Approved. Image accurately depicts South African urban market scenery with high-fidelity, matching the lifestyle blog style guide.",
+        "final_approved_sandbox_version": "Draft approved by Editor-in-Chief. Article transferred to internal staging."
+      }
+    },
+    {
+      "id": "art-002",
+      "journalist_id": "anika-patel",
+      "title": "Baking Sweet Memories: The Best Farm Stalls along the Cradle of Humankind",
+      "topic": "Family weekend drive to Cradle of Humankind farm stalls",
+      "status": "awaiting_admin_review",
+      "created_at": "2026-06-24T10:52:33.154Z",
+      "updated_at": "2026-06-24T22:52:33.154Z",
+      "featured_image": "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop",
+      "artifacts": {
+        "story_idea": "A guide to the absolute best farm stalls for a weekend family drive out to the Cradle of Humankind, focused on freshly baked farm pies, home-made ginger beer, and expansive kid-friendly lawns.",
+        "research_notes": "Cradle of Humankind is a World Heritage site 50km northwest of Johannesburg. Popular farm stalls include Ngwenya Glass café, Cradle Valley farm shop, and Blaauwbank historical farm. Focus is on home-cooked comfort foods.",
+        "source_list": [
+          {
+            "name": "Cradle of Humankind Official Tourism",
+            "url": "https://www.gauteng.net/cradle-of-humankind",
+            "status": "verified",
+            "notes": "Provides routes and list of official heritage locations."
+          },
+          {
+            "name": "Ngwenya Glass Village",
+            "url": "https://www.ngwenyaglass.co.za",
+            "status": "verified",
+            "notes": "Confirmed family craft market dates and operating hours."
+          }
+        ],
+        "article_outline": "1. Introduction: Escaping Jozi's concrete jungle for a rustic family drive.\n2. First Stop: The warm wood-fired pies and fresh pickles.\n3. Outdoor Play: Stalls with sprawling green grass for kids to run safely.\n4. Craft and Souvenirs: Local glass blowers and candle makers.\n5. Practical Details: Travel times and packing advice.",
+        "draft_article": "There is nothing quite like rolling down the car windows, leaving the Jozi highway behind, and breathing in the crisp, herbaceous air of the Cradle of Humankind. If your family is like mine, a weekend drive is only as good as its culinary pitstops—and the Cradle’s farm stalls are in a league of their own.\n\nOur absolute favorite hideaway is the Blaauwbank Farm Stall. As you walk up the gravel pathway, the scent of fresh butter and baking yeast is enough to make anyone weak in the knees. Their legendary chicken-and-mushroom pies are packed to the brim with real, slow-cooked farm ingredients. No processed shortcuts here! \n\nBut the best part? These spots are built with active kids in mind. Most stalls feature sprawling, grassy lawns where little ones can roll down hills or meet resident farm sheep while parents enjoy a cup of locally roasted coffee in peace. It’s simple, unhurried, and perfectly sensory-rich.",
+        "edited_article": "There is nothing quite like rolling down the car windows, leaving the Jozi highway behind, and breathing in the crisp, herbaceous air of the Cradle of Humankind. If your family is like mine, a weekend drive is only as good as its culinary pitstops—and the Cradle’s farm stalls are in a league of their own.\n\nOur absolute favorite hideaway is the Blaauwbank Farm Stall. As you walk up the gravel pathway, the scent of fresh butter and baking yeast is enough to make anyone weak in the knees. Their legendary chicken-and-mushroom pies are packed to the brim with real, slow-cooked farm ingredients. No processed shortcuts here! \n\nBut the best part? These spots are built with active kids in mind. Most stalls feature sprawling, grassy lawns where little ones can roll down hills or meet resident farm sheep while parents enjoy a cup of locally roasted coffee in peace. It’s simple, unhurried, and perfectly sensory-rich.",
+        "fact_check_report": "FACT-CHECK PASSED:\n- 'Cradle of Humankind' location and distance matches standard maps.\n- Blaauwbank farm shop existence is verified.\n- No historical inaccuracies regarding the Heritage site were used.",
+        "bias_check_report": "BIAS-CHECK PASSED:\n- Focus is purely on standard family recreation, totally neutral and accessible.",
+        "image_brief": "Warm, cozy photo of a rustic farm stall entrance with fresh homemade pies on a wooden rack, sunlit green lawns in the background, 16:9 aspect ratio.",
+        "image_prompt": "A rustic, charming South African farm stall entrance surrounded by lush green lawns. Baskets of fresh fruits and artisanal farm pies on display. Warm morning sunshine, inviting country atmosphere, photorealistic, 16:9"
+      }
+    }
+  ],
+  "journalist_memory": [
+    {
+      "id": "mem-001",
+      "journalist_id": "anika-patel",
+      "memory_type": "style_lesson",
+      "memory_content": "Incorporate local South African slangs like 'Mzansi', 'Jozi', 'braai', and 'koeksisters' to establish a authentic local sense of place, but keep it accessible.",
+      "source_article_id": "art-001",
+      "confidence_score": 0.95,
+      "status": "approved",
+      "created_at": "2026-06-21T10:52:33.154Z",
+      "last_used_at": "2026-06-22T10:52:33.154Z"
+    },
+    {
+      "id": "mem-002",
+      "journalist_id": "anika-patel",
+      "memory_type": "editorial_preference",
+      "memory_content": "Always emphasize safety and parking details for family outings, as Jozi parents prioritize secure parking and child-safe play areas when planning weekend trips.",
+      "source_article_id": "art-001",
+      "confidence_score": 0.9,
+      "status": "approved",
+      "created_at": "2026-06-22T10:52:33.154Z",
+      "last_used_at": "2026-06-24T10:52:33.154Z"
+    },
+    {
+      "id": "mem-003",
+      "journalist_id": "anika-patel",
+      "memory_type": "image_preference",
+      "memory_content": "Request images with bright, warm, golden sunlight to match the sunny, optimistic South African spirit rather than cool, moody European lighting.",
+      "source_article_id": "art-002",
+      "confidence_score": 0.85,
+      "status": "candidate",
+      "created_at": "2026-06-24T10:52:33.154Z",
+      "last_used_at": null
+    }
+  ],
+  "agent_logs": [
+    {
+      "id": "log-1782386614340-error",
+      "timestamp": "2026-06-25T11:23:34.340Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386614338",
+      "action_type": "api_fallback",
+      "message": "Gemini API suggestion unavailable (GEMINI_API_KEY is not configured in Secrets / environment variables.). Switched to local South African seed generator."
+    },
+    {
+      "id": "log-1782386614338-1",
+      "timestamp": "2026-06-25T11:23:34.338Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386614338",
+      "action_type": "suggest_topic",
+      "message": "Anika Patel is brainstorming an article topic based on local Mzansi weekend culture..."
+    },
+    {
+      "id": "log-1782386613413-error",
+      "timestamp": "2026-06-25T11:23:33.413Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386613411",
+      "action_type": "api_fallback",
+      "message": "Gemini API suggestion unavailable (GEMINI_API_KEY is not configured in Secrets / environment variables.). Switched to local South African seed generator."
+    },
+    {
+      "id": "log-1782386613411-1",
+      "timestamp": "2026-06-25T11:23:33.411Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386613411",
+      "action_type": "suggest_topic",
+      "message": "Anika Patel is brainstorming an article topic based on local Mzansi weekend culture..."
+    },
+    {
+      "id": "log-1782386612322-error",
+      "timestamp": "2026-06-25T11:23:32.322Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386612320",
+      "action_type": "api_fallback",
+      "message": "Gemini API suggestion unavailable (GEMINI_API_KEY is not configured in Secrets / environment variables.). Switched to local South African seed generator."
+    },
+    {
+      "id": "log-1782386612320-1",
+      "timestamp": "2026-06-25T11:23:32.320Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386612320",
+      "action_type": "suggest_topic",
+      "message": "Admin provided manual topic: \"Hotcakes \""
+    },
+    {
+      "id": "log-1782386463412-error",
+      "timestamp": "2026-06-25T11:21:03.412Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386463410",
+      "action_type": "api_fallback",
+      "message": "Gemini API suggestion unavailable (GEMINI_API_KEY is not configured in Secrets / environment variables.). Switched to local South African seed generator."
+    },
+    {
+      "id": "log-1782386463410-1",
+      "timestamp": "2026-06-25T11:21:03.410Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386463410",
+      "action_type": "suggest_topic",
+      "message": "Anika Patel is brainstorming an article topic based on local Mzansi weekend culture..."
+    },
+    {
+      "id": "log-1782386462538-error",
+      "timestamp": "2026-06-25T11:21:02.538Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386462537",
+      "action_type": "api_fallback",
+      "message": "Gemini API suggestion unavailable (GEMINI_API_KEY is not configured in Secrets / environment variables.). Switched to local South African seed generator."
+    },
+    {
+      "id": "log-1782386462537-1",
+      "timestamp": "2026-06-25T11:21:02.537Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386462537",
+      "action_type": "suggest_topic",
+      "message": "Anika Patel is brainstorming an article topic based on local Mzansi weekend culture..."
+    },
+    {
+      "id": "log-1782386462073-error",
+      "timestamp": "2026-06-25T11:21:02.073Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386462069",
+      "action_type": "api_fallback",
+      "message": "Gemini API suggestion unavailable (GEMINI_API_KEY is not configured in Secrets / environment variables.). Switched to local South African seed generator."
+    },
+    {
+      "id": "log-1782386462069-1",
+      "timestamp": "2026-06-25T11:21:02.069Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-1782386462069",
+      "action_type": "suggest_topic",
+      "message": "Anika Patel is brainstorming an article topic based on local Mzansi weekend culture..."
+    },
+    {
+      "id": "log-001",
+      "timestamp": "2026-06-22T08:52:33.154Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-001",
+      "action_type": "suggest_topic",
+      "message": "Anika suggested topic 'Neighbourgoods Market in Johannesburg' based on lifestyle and community alignment."
+    },
+    {
+      "id": "log-002",
+      "timestamp": "2026-06-22T09:04:33.154Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-001",
+      "action_type": "research",
+      "message": "Research completed. Gathered 2 verified sources for Neighbourgoods Market. No factual anomalies detected."
+    },
+    {
+      "id": "log-003",
+      "timestamp": "2026-06-22T09:22:33.154Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-001",
+      "action_type": "draft",
+      "message": "Draft and edits completed. Sensory words count: 18. South African vocabulary checks passed."
+    },
+    {
+      "id": "log-004",
+      "timestamp": "2026-06-22T10:52:33.154Z",
+      "journalist_id": "anika-patel",
+      "article_id": "art-001",
+      "action_type": "telegram_send",
+      "message": "Mock dispatch sent to Telegram Channel. Admin approved the post directly in the workspace."
+    }
+  ],
+  "telegram_config": {
+    "bot_token": "",
+    "chat_id": "",
+    "is_active": false
+  }
+}
