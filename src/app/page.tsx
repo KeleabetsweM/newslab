@@ -503,28 +503,18 @@ export default function App() {
   }
 
   return (
-    <div id="app-container" className="flex h-screen w-screen overflow-hidden bg-[#fafbfb]">
+    <div id="app-container" className="flex h-screen w-screen overflow-hidden bg-[#FDFDFB] text-[#2D2926]">
       {/* 1. Sidebar Nav */}
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         journalist={getActiveJournalist()}
         pendingApprovalsCount={getPendingApprovalsCount()}
+        onSignOut={handleSignOut}
       />
 
       {/* 2. Main Workspace */}
-      <main className="flex-1 overflow-y-auto px-8 py-6 h-full scrollbar-thin">
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-xs text-slate-400">
-            Welcome, {session?.user?.email}
-          </div>
-          <button 
-            onClick={handleSignOut}
-            className="text-xs font-bold text-rose-600 hover:text-rose-800 transition-colors"
-          >
-            Sign Out
-          </button>
-        </div>
+      <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full h-full">
         {renderViewContent()}
       </main>
 

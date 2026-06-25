@@ -7,7 +7,8 @@ import {
   Settings, 
   Image as ImageIcon, 
   User, 
-  Send 
+  Send,
+  LogOut
 } from "lucide-react";
 import { Journalist } from "../types";
 
@@ -16,13 +17,15 @@ interface SidebarProps {
   setCurrentTab: (tab: string) => void;
   journalist: Journalist | null;
   pendingApprovalsCount: number;
+  onSignOut?: () => void;
 }
 
 export default function Sidebar({ 
   currentTab, 
   setCurrentTab, 
   journalist, 
-  pendingApprovalsCount 
+  pendingApprovalsCount,
+  onSignOut
 }: SidebarProps) {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -74,6 +77,19 @@ export default function Sidebar({
           );
         })}
       </nav>
+
+      {/* Sign Out Button */}
+      {onSignOut && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={onSignOut}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-150"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      )}
 
       {/* Active Journalist Profile Indicator */}
       {journalist && (
