@@ -49,36 +49,36 @@ export default function ArticlesView({ articles, onSelectArticle }: ArticlesView
   };
 
   return (
-    <div class="space-y-6 font-sans">
+    <div className="space-y-6 font-sans">
       {/* Header */}
-      <div class="pb-4 border-b border-[#E5E2D9]">
-        <h2 class="text-3xl font-serif italic text-[#2D2926] tracking-tight">
+      <div className="pb-4 border-b border-[#E5E2D9]">
+        <h2 className="text-3xl font-serif italic text-[#2D2926] tracking-tight">
           Sandbox Articles Library
         </h2>
-        <p class="text-xs text-slate-500 mt-1 font-serif italic">
+        <p className="text-xs text-slate-500 mt-1 font-serif italic">
           Browse, inspect, and transition articles through Anika's multi-tier editorial pipeline.
         </p>
       </div>
 
       {/* Filter and Search Bar */}
-      <div class="flex flex-col md:flex-row gap-3 bg-white p-4 rounded border border-[#E5E2D9] shadow-sm">
-        <div class="relative flex-1">
-          <Search class="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+      <div className="flex flex-col md:flex-row gap-3 bg-white p-4 rounded border border-[#E5E2D9] shadow-sm">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search articles by headline or topic..."
-            class="w-full text-xs bg-[#F8F7F3] border border-[#E5E2D9] rounded pl-9 pr-4 py-2.5 text-[#2D2926] placeholder-slate-400 focus:outline-none focus:border-[#E27D60] focus:bg-white transition-all"
+            className="w-full text-xs bg-[#F8F7F3] border border-[#E5E2D9] rounded pl-9 pr-4 py-2.5 text-[#2D2926] placeholder-slate-400 focus:outline-none focus:border-[#E27D60] focus:bg-white transition-all"
           />
         </div>
 
-        <div class="flex flex-wrap gap-1.5 items-center">
+        <div className="flex flex-wrap gap-1.5 items-center">
           {statuses.map((s) => (
             <button
               key={s.value}
               onClick={() => setStatusFilter(s.value)}
-              class={`px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider border transition-all duration-150 ${
+              className={`px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider border transition-all duration-150 ${
                 statusFilter === s.value
                   ? "bg-[#E27D60] text-white border-[#E27D60] shadow-sm"
                   : "bg-[#F8F7F3] text-slate-600 border-[#E5E2D9] hover:bg-slate-50"
@@ -92,59 +92,59 @@ export default function ArticlesView({ articles, onSelectArticle }: ArticlesView
 
       {/* Articles Grid */}
       {filteredArticles.length === 0 ? (
-        <div class="bg-white rounded border border-[#E5E2D9] p-12 text-center text-slate-400 text-xs font-serif italic">
+        <div className="bg-white rounded border border-[#E5E2D9] p-12 text-center text-slate-400 text-xs font-serif italic">
           No articles match your selection. Create a new article idea or reset seeds in the settings.
         </div>
       ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredArticles.map((article) => (
             <div
               key={article.id}
-              class="bg-white rounded border border-[#E5E2D9] shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all group duration-200"
+              className="bg-white rounded border border-[#E5E2D9] shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all group duration-200"
             >
               {/* Card Image */}
-              <div class="relative h-44 bg-[#F8F7F3] overflow-hidden">
+              <div className="relative h-44 bg-[#F8F7F3] overflow-hidden">
                 <img
                   src={article.featured_image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&fit=crop"}
                   alt={article.title}
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   referrerPolicy="no-referrer"
                 />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                 
-                <span class={`absolute top-3 right-3 text-[9px] px-2.5 py-0.75 rounded font-mono border uppercase tracking-wider font-bold ${getStatusStyle(article.status)} bg-white/95 backdrop-blur-sm shadow-sm`}>
+                <span className={`absolute top-3 right-3 text-[9px] px-2.5 py-0.75 rounded font-mono border uppercase tracking-wider font-bold ${getStatusStyle(article.status)} bg-white/95 backdrop-blur-sm shadow-sm`}>
                   {article.status.replace("_", " ")}
                 </span>
               </div>
 
               {/* Card Body */}
-              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-                <div class="space-y-2">
-                  <span class="text-[9px] font-mono text-[#E27D60] bg-[#E27D60]/5 px-2 py-0.5 rounded border border-[#E27D60]/10 font-bold uppercase tracking-wider">
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <span className="text-[9px] font-mono text-[#E27D60] bg-[#E27D60]/5 px-2 py-0.5 rounded border border-[#E27D60]/10 font-bold uppercase tracking-wider">
                     {article.topic.split(" ").slice(0, 3).join(" ")}
                   </span>
                   
-                  <h3 class="text-base font-serif font-bold text-[#2D2926] leading-snug line-clamp-2 hover:text-[#E27D60] transition-colors">
+                  <h3 className="text-base font-serif font-bold text-[#2D2926] leading-snug line-clamp-2 hover:text-[#E27D60] transition-colors">
                     {article.title}
                   </h3>
                   
-                  <p class="text-xs text-slate-500 line-clamp-3 font-sans">
+                  <p className="text-xs text-slate-500 line-clamp-3 font-sans">
                     {article.artifacts.story_idea || "Pitch outline under construction."}
                   </p>
                 </div>
 
-                <div class="border-t border-[#E5E2D9] pt-3.5 flex items-center justify-between">
-                  <div class="flex items-center gap-1.5 text-slate-400 text-[10px] font-mono">
-                    <Calendar class="h-3 w-3 text-[#E27D60]" />
+                <div className="border-t border-[#E5E2D9] pt-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-mono">
+                    <Calendar className="h-3 w-3 text-[#E27D60]" />
                     <span>{new Date(article.created_at).toLocaleDateString()}</span>
                   </div>
 
                   <button
                     onClick={() => onSelectArticle(article.id)}
-                    class="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-[#E27D60] hover:text-[#e27d60]/80 transition-colors group-hover:translate-x-0.5 transform duration-150"
+                    className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-[#E27D60] hover:text-[#e27d60]/80 transition-colors group-hover:translate-x-0.5 transform duration-150"
                   >
                     Inspect
-                    <Eye class="h-3.5 w-3.5" />
+                    <Eye className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>

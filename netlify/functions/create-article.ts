@@ -1,10 +1,45 @@
 import type { Handler } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
-import { json, parseJson, slugify } from './_shared/http';
+import { json, parseJson } from './_shared/http';
 import { getSupabaseAdmin } from './_shared/supabase';
-import { generateArticlePackage } from './_shared/ai';
-import { generateFeaturedImage } from './_shared/image';
-import { sendTelegramPreview } from './_shared/telegram';
+import OpenAI from 'openai';
+
+async function callAI(systemInstruction: string, prompt: string, expectedSchema?: any): Promise<string> {
+  const provider = (process.env.AI_PROVIDER || 'mock').toLowerCase();
+
+  if (provider === 'openai' && process.env.OPENAI_API_KEY) {
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const response = await (client.responses as any).create({
+      model: process.env.OPENAI_TEXT_MODEL || 'gpt-4.1-mini',
+      input: [
+        { role: 'system', content: systemInstruction },
+        { role: 'user', content: prompt }
+      ],
+      text: expectedSchema ? { format: { type: 'json_object' } } : undefined
+    });
+    return response.output_text;
+  }
+
+  if (provider === 'gemini' && process.env.GEMINI_API_KEY) {
+    const model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${systemInstruction}\n\n${prompt}` }] }],
+        generationConfig: expectedSchema ? {
+          responseMimeType: 'application/json',
+          responseSchema: expectedSchema
+        } : undefined
+      })
+    });
+    if (!res.ok) throw new Error(`Gemini request failed: ${res.status}`);
+    const payload = await res.json() as any;
+    return payload.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+  }
+
+  throw new Error('mock_fallback');
+}
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
@@ -27,28 +62,96 @@ export const handler: Handler = async (event) => {
       .from('journalist_memory')
       .select('memory_content')
       .eq('journalist_id', 'anika-patel')
-      .eq('status', 'approved')
-      .limit(20);
+      .eq('status', 'approved');
 
     const memories = (memoryRows || []).map((m: any) => m.memory_content as string);
-    const pack = await generateArticlePackage(topic, memories);
-    const slug = slugify(pack.title);
+    const memoryContext = memories.map((m) => `- ${m}`).join('\n');
+
+    const isSuggested = !topic;
+    let chosenTopic = topic || '';
+    let storyIdea = '';
+    let title = '';
+
+    const systemPrompt = `You are ${journalist.name}, the ${journalist.role} for the website ${journalist.website}. 
+Sections you edit: ${journalist.sections.join(', ')}.
+Your tone: ${journalist.tone}
+Your personality: ${journalist.personality}
+
+Approved style memories:
+${memoryContext || '- No approved memories yet.'}
+`;
+
+    const isMock = (process.env.AI_PROVIDER || 'mock').toLowerCase() === 'mock';
+
+    if (isMock) {
+      const fallbacks = [
+        {
+          title: 'Sensory Delights at the Shongweni Farmers Market',
+          topic: 'Shongweni Farmers Market in Durban',
+          storyIdea: "A weekend culinary safari to Durban's favorite outdoor market, exploring farm cheese, local Zulu clay pottery, and pristine child-friendly nature walk trails."
+        },
+        {
+          title: 'Smiles and Sunshine at Kirstenbosch Botanical Gardens',
+          topic: 'Kirstenbosch Family Picnics',
+          storyIdea: 'An essential guide to packing the ultimate Cape Town picnic hamper, finding the coolest canopy walkways, and enjoying open-air lawns with toddler-friendly slopes.'
+        }
+      ];
+      const selected = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      chosenTopic = isSuggested ? selected.topic : chosenTopic;
+      title = isSuggested ? selected.title : `Explore Mzansi: ${chosenTopic}`;
+      storyIdea = isSuggested ? selected.storyIdea : `A family-focused weekend guide around ${chosenTopic}.`;
+    } else {
+      try {
+        if (isSuggested) {
+          const prompt = 'Please suggest 1 creative, warm, sensory-driven story idea for a weekend outing or food review in South Africa. Respond strictly in JSON matching this schema: { "suggestedTopic": "string", "title": "string", "storyIdea": "string" }';
+          const aiResponse = await callAI(systemPrompt, prompt, {
+            type: 'OBJECT',
+            properties: {
+              suggestedTopic: { type: 'STRING' },
+              title: { type: 'STRING' },
+              storyIdea: { type: 'STRING' }
+            },
+            required: ['suggestedTopic', 'title', 'storyIdea']
+          });
+          const parsed = JSON.parse(aiResponse);
+          chosenTopic = parsed.suggestedTopic;
+          title = parsed.title;
+          storyIdea = parsed.storyIdea;
+        } else {
+          const prompt = `Develop a story idea pitch based on the requested topic: "${topic}". Respond strictly in JSON matching this schema: { "title": "string", "storyIdea": "string" }`;
+          const aiResponse = await callAI(systemPrompt, prompt, {
+            type: 'OBJECT',
+            properties: {
+              title: { type: 'STRING' },
+              storyIdea: { type: 'STRING' }
+            },
+            required: ['title', 'storyIdea']
+          });
+          const parsed = JSON.parse(aiResponse);
+          title = parsed.title;
+          storyIdea = parsed.storyIdea;
+        }
+      } catch (err) {
+        // Fallback if API fails
+        chosenTopic = isSuggested ? 'Kirstenbosch Botanical Gardens' : chosenTopic;
+        title = isSuggested ? 'Kirstenbosch Family Picnic' : `Explore Mzansi: ${chosenTopic}`;
+        storyIdea = `A family-focused guide covering ${chosenTopic} with practical weekend tips.`;
+      }
+    }
 
     const { data: article, error: articleError } = await supabase
       .from('articles')
       .insert({
         journalist_id: 'anika-patel',
         website: journalist.website,
-        section: pack.section,
-        topic: topic || pack.storyIdea,
-        title: pack.title,
-        slug,
-        summary: pack.summary,
-        body: pack.editedArticle,
-        status: 'image_pending',
-        risk_level: pack.riskLevel,
-        fact_check_status: pack.factCheck.status,
-        bias_check_status: pack.biasCheck.status,
+        section: journalist.sections[0] || 'Food & Weekend Markets',
+        topic: chosenTopic,
+        title,
+        slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        status: 'idea',
+        risk_level: 'low',
+        fact_check_status: 'needs_review',
+        bias_check_status: 'needs_review',
         image_status: 'pending'
       })
       .select('*')
@@ -56,80 +159,25 @@ export const handler: Handler = async (event) => {
 
     if (articleError) throw articleError;
 
-    await supabase.from('agent_logs').insert({ article_id: article.id, agent_name: 'Anika Patel', action: 'create_article_package', output: pack });
-
-    const artifacts = [
-      ['story_idea', 'Story idea', pack.storyIdea],
-      ['research_notes', 'Research notes', pack.researchNotes],
-      ['outline', 'Article outline', pack.outline],
-      ['draft_article', 'Draft article', pack.draftArticle],
-      ['edited_article', 'Edited article', pack.editedArticle],
-      ['fact_check_report', 'Fact-check report', pack.factCheck],
-      ['bias_check_report', 'Bias-check report', pack.biasCheck],
-      ['image_brief', 'Image brief', pack.imageBrief],
-      ['image_prompt', 'Image prompt', pack.imagePrompt],
-      ['image_quality_review', 'Image quality review', pack.imageReview]
-    ].map(([artifact_type, title, content]) => ({ article_id: article.id, artifact_type, title, content }));
-
-    await supabase.from('article_artifacts').insert(artifacts);
-
-    if (pack.sources.length) {
-      await supabase.from('sources').insert(pack.sources.map((source) => ({
-        article_id: article.id,
-        title: source.title,
-        url: source.url,
-        publisher: source.publisher || null,
-        reliability_score: source.reliability_score || null,
-        notes: source.notes || null
-      })));
-    }
-
-    const generatedImage = await generateFeaturedImage(pack.imagePrompt, article.id);
-
-    const { data: imageJob, error: imageJobError } = await supabase.from('image_jobs').insert({
+    // Save story idea artifact
+    await supabase.from('article_artifacts').insert({
       article_id: article.id,
-      prompt: pack.imagePrompt,
-      style_type: 'premium_editorial_south_african_lifestyle',
-      generation_status: 'completed',
-      review_status: pack.imageReview.status,
-      quality_score: pack.imageReview.quality_score,
-      image_url: generatedImage.image_url,
-      provider: generatedImage.provider,
-      storage_path: generatedImage.storage_path
-    }).select('*').single();
-
-    if (imageJobError) throw imageJobError;
-
-    await supabase.from('image_reviews').insert({
-      image_job_id: imageJob.id,
-      relevance_score: 8,
-      realism_score: 8,
-      anatomy_score: 8,
-      composition_score: 8,
-      artifact_flags: pack.imageReview.flags,
-      notes: pack.imageReview.notes,
-      approved: pack.imageReview.status === 'approved'
+      artifact_type: 'story_idea',
+      title: 'Story Idea',
+      content: { text: storyIdea }
     });
 
-    const imageStatus = pack.imageReview.status === 'approved' ? 'approved' : 'needs_regeneration';
-    await supabase.from('articles').update({ status: 'awaiting_admin_review', image_status: imageStatus }).eq('id', article.id);
-
-    await sendTelegramPreview({
+    // Write initial log
+    await supabase.from('agent_logs').insert({
       article_id: article.id,
-      title: pack.title,
-      website: journalist.website,
-      journalist: journalist.name,
-      section: pack.section,
-      summary: pack.summary,
-      risk_level: pack.riskLevel,
-      fact_check_status: pack.factCheck.status,
-      bias_check_status: pack.biasCheck.status,
-      image_status: imageStatus,
-      sources: pack.sources.map((s) => ({ title: s.title, url: s.url }))
+      agent_name: 'Anika Patel',
+      action: 'suggest_topic',
+      output: { message: `Anika Patel brainstormed pitch: "${title}". Status: IDEA.` }
     });
 
-    return json(200, { article_id: article.id, status: 'awaiting_admin_review' });
+    return json(200, { article_id: article.id, status: 'idea' });
   } catch (error) {
+    console.error('Create article error:', error);
     return json(400, { error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
