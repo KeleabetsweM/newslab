@@ -45,23 +45,24 @@ export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
   try {
     await requireAdmin(event);
-    const body = parseJson<{ topic?: string }>(event);
+    const body = parseJson<{ topic?: string; journalist_id?: string }>(event);
     const topic = body.topic?.trim();
+    const journalistId = body.journalist_id?.trim() || 'anika-patel';
     const supabase = getSupabaseAdmin();
 
     const { data: journalist, error: journalistError } = await supabase
       .from('journalists')
       .select('*')
-      .eq('id', 'anika-patel')
+      .eq('id', journalistId)
       .maybeSingle();
 
     if (journalistError) throw journalistError;
-    if (!journalist) throw new Error('Anika Patel journalist seed is missing. Run supabase/schema.sql first.');
+    if (!journalist) throw new Error(`Journalist seed "${journalistId}" is missing. Run supabase/schema.sql first.`);
 
     const { data: memoryRows } = await supabase
       .from('journalist_memory')
       .select('memory_content')
-      .eq('journalist_id', 'anika-patel')
+      .eq('journalist_id', journalist.id)
       .eq('status', 'approved');
 
     const memories = (memoryRows || []).map((m: any) => m.memory_content as string);
@@ -142,7 +143,7 @@ ${memoryContext || '- No approved memories yet.'}
     const { data: article, error: articleError } = await supabase
       .from('articles')
       .insert({
-        journalist_id: 'anika-patel',
+        journalist_id: journalist.id,
         website: journalist.website,
         section: journalist.sections[0] || 'Food & Weekend Markets',
         topic: chosenTopic,
@@ -170,12 +171,12 @@ ${memoryContext || '- No approved memories yet.'}
     // Write initial log
     await supabase.from('agent_logs').insert({
       article_id: article.id,
-      agent_name: 'Anika Patel',
+      agent_name: journalist.name,
       action: 'suggest_topic',
-      output: { message: `Anika Patel brainstormed pitch: "${title}". Status: IDEA.` }
+      output: { message: `${journalist.name} brainstormed pitch: "${title}". Status: IDEA.` }
     });
 
-    return json(200, { article_id: article.id, status: 'idea' });
+    return json(200, { article_id: article.id, journalist_id: journalist.id, status: 'idea' });
   } catch (error) {
     console.error('Create article error:', error);
     return json(400, { error: error instanceof Error ? error.message : 'Unknown error' });

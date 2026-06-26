@@ -24,12 +24,14 @@ export async function sendTelegramPreview(input: TelegramPreviewInput) {
     return { skipped: true };
   }
 
-  const articleUrl = baseUrl ? `${baseUrl}/articles/${input.article_id}` : input.article_id;
+  // The sandbox currently renders article details inside the main dashboard.
+  // Use a dashboard query param instead of linking to a non-existent /articles/[id] route.
+  const articleUrl = baseUrl ? `${baseUrl}/?article=${encodeURIComponent(input.article_id)}` : input.article_id;
   const sourcesText = input.sources.length
     ? input.sources.slice(0, 5).map((s, idx) => `${idx + 1}. ${s.title}: ${s.url}`).join('\n')
     : 'No sources stored.';
 
-  const text = `📰 Article Ready for Sandbox Review\n\nWebsite:\n${input.website}\n\nJournalist:\n${input.journalist}\n\nSection:\n${input.section}\n\nTitle:\n${input.title}\n\nSummary:\n${input.summary}\n\nRisk Level:\n${input.risk_level}\n\nFact Check:\n${input.fact_check_status}\n\nBias Check:\n${input.bias_check_status}\n\nImage Status:\n${input.image_status}\n\nSources:\n${sourcesText}\n\nOpen:\n${articleUrl}`;
+  const text = `📰 Article Ready for Sandbox Review\n\nWebsite:\n${input.website}\n\nJournalist:\n${input.journalist}\n\nSection:\n${input.section}\n\nTitle:\n${input.title}\n\nSummary:\n${input.summary}\n\nRisk Level:\n${input.risk_level}\n\nFact Check:\n${input.fact_check_status}\n\nBias Check:\n${input.bias_check_status}\n\nImage Status:\n${input.image_status}\n\nSources:\n${sourcesText}\n\nOpen Sandbox Dashboard:\n${articleUrl}`;
 
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',

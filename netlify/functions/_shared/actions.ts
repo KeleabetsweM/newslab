@@ -2,6 +2,17 @@ import { getSupabaseAdmin } from './supabase';
 import { generateMemoryCandidates } from './ai';
 import { generateFeaturedImage } from './image';
 
+function artifactText(content: unknown) {
+  if (typeof content === 'string') return content;
+
+  if (content && typeof content === 'object' && 'text' in content) {
+    const value = (content as { text?: unknown }).text;
+    return typeof value === 'string' ? value : '';
+  }
+
+  return '';
+}
+
 export async function approveArticleSandbox(articleId: string, feedback = '') {
   const supabase = getSupabaseAdmin();
   const { data: article, error } = await supabase.from('articles').select('*').eq('id', articleId).single();
@@ -49,7 +60,8 @@ export async function regenerateImage(articleId: string, feedback = '') {
     .limit(1)
     .maybeSingle();
 
-  const prompt = `${String(promptArtifact?.content || 'Premium editorial South African lifestyle image, natural light, realistic, no text, no AI artifacts.')}${feedback ? `\nAdmin feedback for regeneration: ${feedback}` : ''}`;
+  const savedPrompt = artifactText(promptArtifact?.content);
+  const prompt = `${savedPrompt || 'Premium editorial South African lifestyle image, natural light, realistic, no text, no AI artifacts.'}${feedback ? `\nAdmin feedback for regeneration: ${feedback}` : ''}`;
   const generatedImage = await generateFeaturedImage(prompt, articleId);
 
   const { data: imageJob, error } = await supabase.from('image_jobs').insert({

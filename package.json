@@ -2,6 +2,9 @@
   "name": "newsroom-lab",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "description": "Private AI newsroom sandbox with one journalist, artifact tracking, memory, image review, Telegram approvals, and Supabase storage.",
   "scripts": {
     "dev": "netlify dev",
