@@ -118,6 +118,16 @@ Approved memories:
 ${memoryContext || '- No approved memories yet.'}
 `;
 
+    // Fetch latest admin feedback for revision hints
+    const { data: feedbackRows } = await supabase
+      .from('admin_feedback')
+      .select('feedback')
+      .eq('article_id', id)
+      .eq('feedback_type', 'revision_requested')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    const latestFeedback = feedbackRows && feedbackRows.length > 0 ? feedbackRows[0].feedback : null;
+
     const currentStatus = article.status;
     let nextStatus = currentStatus;
     let logMsg = '';
@@ -143,10 +153,15 @@ ${memoryContext || '- No approved memories yet.'}
           { article_id: id, title: 'Gauteng Heritage Directory', url: 'https://gautengtourism.co.za', reliability_score: 0.8, notes: 'Heritage status verified.' }
         ]);
       } else {
-        const prompt = `Conduct lifestyle research for an article about the topic "${article.topic}".
+        let prompt = `Conduct lifestyle research for an article about the topic "${article.topic}".
 Verify location hours, exact address landmarks, key local features, and typical weekend family logistics.
-Create 2-3 genuine, verifiable sources with descriptions.
-Provide the output strictly in JSON matching this schema:
+Create 2-3 genuine, verifiable sources with descriptions.`;
+
+        if (latestFeedback) {
+          prompt += `\nCRITICAL: The editor requested the following corrections/revisions to the story. Make sure your research addresses this feedback:\nFeedback: "${latestFeedback}"`;
+        }
+
+        prompt += `\nProvide the output strictly in JSON matching this schema:
 {
   "researchNotes": "string",
   "sources": [{ "name": "string", "url": "string", "notes": "string" }]
@@ -236,9 +251,14 @@ Provide the output strictly in JSON matching this schema:
           slug: 'escaping-the-city-blaauwbank'
         }).eq('id', id);
       } else {
-        const prompt = `Based on these research notes: "${researchStr}", write a full, warm, inclusive lifestyle blog post.
-The word count should be around 350-500 words. Highlight local foods, welcoming family vibes, and practical tips.
-Then, write a section roadmap/outline.
+        let prompt = `Based on these research notes: "${researchStr}", write a full, warm, inclusive lifestyle blog post.
+The word count should be around 350-500 words. Highlight local foods, welcoming family vibes, and practical tips.`;
+
+        if (latestFeedback) {
+          prompt += `\nCRITICAL: The editor requested the following corrections/revisions. Make sure to address this feedback in the outline, draft, and edited versions:\nFeedback: "${latestFeedback}"`;
+        }
+
+        prompt += `\nThen, write a section roadmap/outline.
 Provide the output strictly in JSON matching this schema:
 {
   "title": "string",
