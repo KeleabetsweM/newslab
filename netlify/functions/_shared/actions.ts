@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from './supabase';
 import { generateMemoryCandidates } from './ai';
 import { generateFeaturedImage } from './image';
+import { publishArticleToPublic } from './publicPublishing';
 
 function artifactText(content: unknown) {
   if (typeof content === 'string') return content;
@@ -26,6 +27,16 @@ export async function approveArticleSandbox(articleId: string, feedback = '') {
   await supabase.from('admin_feedback').insert({ article_id: articleId, feedback_type: statusNote, feedback });
   await supabase.from('telegram_approvals').insert({ article_id: articleId, approval_status: nextStatus, admin_feedback: feedback || null });
   await createMemoryCandidates(articleId, article.title, feedback || (canApprove ? 'Approved for sandbox. Maintain this standard.' : 'Approval attempted but checks did not pass. Improve before approval.'));
+
+  // If approved and auto-publish is enabled, publish to Mzansi Mashup
+  if (canApprove && process.env.MZANSI_AUTO_PUBLISH_ENABLED === 'true') {
+    try {
+      await publishArticleToPublic(articleId, { autoPublish: true });
+    } catch (pubErr) {
+      console.error('Auto-publish failed inside approveArticleSandbox:', pubErr);
+    }
+  }
+
   return { status: nextStatus, canApprove };
 }
 
@@ -94,10 +105,12 @@ export async function regenerateImage(articleId: string, feedback = '') {
 
 async function createMemoryCandidates(articleId: string, title: string, feedback: string) {
   const supabase = getSupabaseAdmin();
+  const { data: article } = await supabase.from('articles').select('journalist_id').eq('id', articleId).single();
+  const journalistId = article?.journalist_id || 'anika-patel';
   const candidates = await generateMemoryCandidates(feedback, title);
   if (!candidates.length) return;
   await supabase.from('journalist_memory').insert(candidates.map((candidate) => ({
-    journalist_id: 'anika-patel',
+    journalist_id: journalistId,
     source_article_id: articleId,
     status: 'candidate',
     ...candidate

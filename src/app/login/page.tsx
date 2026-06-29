@@ -56,7 +56,7 @@ export default function LoginPage() {
             <input 
               type="email"
               className="w-full text-sm bg-[#F8F7F3] border border-[#E5E2D9] rounded-xl px-4 py-3 text-[#2D2926] placeholder-slate-400 focus:outline-none focus:border-[#E27D60] focus:bg-white transition-all"
-              placeholder="admin@whatsoninmzansi.co.za" 
+              placeholder="admin@mzansimashup.co.za" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
             />

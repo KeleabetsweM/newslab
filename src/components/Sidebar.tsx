@@ -8,7 +8,8 @@ import {
   Image as ImageIcon, 
   User, 
   Send,
-  LogOut
+  LogOut,
+  Globe
 } from "lucide-react";
 import { Journalist } from "../types";
 
@@ -33,6 +34,7 @@ export default function Sidebar({
     { id: "images", label: "Images Portfolio", icon: ImageIcon },
     { id: "memory", label: "Journalist Memory", icon: BrainCircuit },
     { id: "approvals", label: "Approvals Queue", icon: CheckSquare, badge: pendingApprovalsCount },
+    { id: "mzansi-live", label: "Mzansi Live Beta", icon: Globe },
     { id: "profile", label: "Journalist Profile", icon: User },
     { id: "settings", label: "Sandbox Settings", icon: Settings },
   ];

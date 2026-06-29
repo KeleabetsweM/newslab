@@ -345,7 +345,7 @@ export default function JournalistProfileView({
     setFormId("");
     setFormName("");
     setFormRole("");
-    setFormWebsite("www.whatsoninmzansi.co.za");
+    setFormWebsite("mzansimashup.co.za");
     setFormSections("");
     setFormPersonality("");
     setFormTone("");
@@ -683,7 +683,7 @@ export default function JournalistProfileView({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. www.whatsoninmzansi.co.za"
+                      placeholder="e.g. mzansimashup.co.za"
                       value={formWebsite}
                       onChange={(e) => setFormWebsite(e.target.value)}
                       className="w-full p-2.5 border border-[#E5E2D9] rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#E27D60]"

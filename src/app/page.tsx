@@ -14,6 +14,7 @@ import JournalistProfileView from "@/components/JournalistProfileView";
 import MemoryView from "@/components/MemoryView";
 import ApprovalsView from "@/components/ApprovalsView";
 import SettingsView from "@/components/SettingsView";
+import MzansiLiveView from "@/components/MzansiLiveView";
 import { Article, Journalist, AgentLog, JournalistMemory, Source } from "@/lib/types";
 
 export default function App() {
@@ -572,6 +573,14 @@ export default function App() {
             articles={scopedArticles}
             onSelectArticle={handleSelectArticle}
             onTelegramAction={handleTelegramAction}
+          />
+        );
+      case "mzansi-live":
+        return (
+          <MzansiLiveView
+            articles={scopedArticles}
+            onRefresh={fetchState}
+            onSelectArticle={handleSelectArticle}
           />
         );
       case "settings":

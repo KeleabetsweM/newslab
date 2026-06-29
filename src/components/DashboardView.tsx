@@ -300,7 +300,7 @@ export default function DashboardView({
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-400 font-serif">Local Grounding:</span>
-                  <span className="font-mono text-slate-500 text-[10px]">What's on in Mzansi</span>
+                  <span className="font-mono text-slate-500 text-[10px]">Mzansi Mashup</span>
                 </div>
               </div>
             </div>

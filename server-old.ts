@@ -20,7 +20,7 @@ const SEED_DATA = {
     {
       id: "anika-patel",
       name: "Anika Patel",
-      website: "www.whatsoninmzansi.co.za",
+      website: "mzansimashup.co.za",
       sections: ["Food & Weekend Markets", "Family & Kids Days Out"],
       role: "Lifestyle & Community Editor",
       tone: "Friendly, inclusive, enthusiastic, sensory-driven, helpful, and warm.",

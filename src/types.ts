@@ -179,3 +179,35 @@ export interface AgentRun {
   finished_at: string | null;
 }
 
+export interface PublicArticle {
+  id: string;
+  article_id: string;
+  journalist_id: string;
+  website: string;
+  title: string;
+  slug: string;
+  summary?: string;
+  body: string;
+  featured_image?: string;
+  category?: string;
+  tags: string[];
+  public_status: 'draft' | 'published' | 'unpublished';
+  published_at?: string;
+  unpublished_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PublicPublishLog {
+  id: string;
+  article_id: string;
+  public_article_id?: string;
+  journalist_id?: string;
+  action: string;
+  status: 'success' | 'failed' | 'skipped';
+  reason?: string;
+  metadata: any;
+  created_at: string;
+}
+
+

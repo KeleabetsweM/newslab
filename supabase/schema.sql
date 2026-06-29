@@ -139,7 +139,7 @@ insert into journalists (id, name, website, sections, role, tone, personality, r
 values (
   'anika-patel',
   'Anika Patel',
-  'www.whatsoninmzansi.co.za',
+  'mzansimashup.co.za',
   array['Food & Weekend Markets','Family & Kids Days Out'],
   'Lifestyle & Community Editor',
   'Friendly, inclusive, highly enthusiastic, sensory-driven, helpful, and warm.',
@@ -298,3 +298,57 @@ values (
   'awaiting_admin_review'
 )
 on conflict (journalist_id) do nothing;
+
+-- Phase 2B: Mzansi Mashup Live Beta Publishing Bridge tables
+create table if not exists public_articles (
+  id uuid primary key default gen_random_uuid(),
+  article_id uuid references articles(id) on delete cascade,
+  journalist_id text references journalists(id) on delete restrict,
+  website text not null default 'mzansimashup.co.za',
+  title text not null,
+  slug text not null unique,
+  summary text,
+  body text not null,
+  featured_image text,
+  category text,
+  tags text[] not null default '{}',
+  public_status text not null default 'published' check (public_status in ('draft','published','unpublished')),
+  published_at timestamptz,
+  unpublished_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public_publish_logs (
+  id uuid primary key default gen_random_uuid(),
+  article_id uuid references articles(id) on delete cascade,
+  public_article_id uuid references public_articles(id) on delete set null,
+  journalist_id text references journalists(id) on delete set null,
+  action text not null,
+  status text not null default 'success' check (status in ('success','failed','skipped')),
+  reason text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+alter table public_articles enable row level security;
+alter table public_publish_logs enable row level security;
+
+drop policy if exists "public_read_published_articles" on public_articles;
+create policy "public_read_published_articles"
+on public_articles for select
+using (public_status = 'published');
+
+drop policy if exists "authenticated_read_public_articles" on public_articles;
+create policy "authenticated_read_public_articles"
+on public_articles for select to authenticated
+using (true);
+
+drop policy if exists "authenticated_read_public_publish_logs" on public_publish_logs;
+create policy "authenticated_read_public_publish_logs"
+on public_publish_logs for select to authenticated
+using (true);
+
+drop trigger if exists set_public_articles_updated_at on public_articles;
+create trigger set_public_articles_updated_at before update on public_articles for each row execute function set_updated_at();
+

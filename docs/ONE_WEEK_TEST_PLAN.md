@@ -3,7 +3,7 @@
 ## Test journalist
 
 **Anika Patel**  
-Website: `www.whatsoninmzansi.co.za`  
+Website: `mzansimashup.co.za`  
 Sections: Food & Weekend Markets, Family & Kids Days Out
 
 ## Daily test rhythm
