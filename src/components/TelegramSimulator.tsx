@@ -5,6 +5,7 @@ import { Article, Journalist } from "../types";
 interface TelegramSimulatorProps {
   articles: Article[];
   journalist: Journalist | null;
+  journalists: Journalist[];
   onTelegramAction: (articleId: string, action: string, revisionText?: string) => Promise<void>;
   telegramConfig: {
     bot_token: string;
@@ -16,6 +17,7 @@ interface TelegramSimulatorProps {
 export default function TelegramSimulator({
   articles,
   journalist,
+  journalists,
   onTelegramAction,
   telegramConfig
 }: TelegramSimulatorProps) {
@@ -115,7 +117,7 @@ export default function TelegramSimulator({
       {/* Simulator Guidance */}
       <div className="p-3 bg-[#1A1A1A]/50 border-b border-white/10 text-[11px] text-white/60">
         <p className="leading-relaxed font-serif italic">
-          Interact here to simulate telegram bot approvals. Changes will synchronize with Anika's memory candidate models instantly.
+          Interact here to simulate telegram bot approvals. Changes will synchronize with the journalist's memory candidate models instantly.
         </p>
       </div>
 
@@ -144,7 +146,12 @@ export default function TelegramSimulator({
                 {/* Message Bubble */}
                 <div className="bg-[#3D3834] text-slate-200 rounded-2xl rounded-tl-none p-3 shadow-md max-w-[90%] border border-white/5">
                   <div className="flex items-center gap-1.5 mb-1 border-b border-white/5 pb-1">
-                    <span className="font-bold text-xs text-[#E27D60]">Anika Patel (Editor)</span>
+                    <span className="font-bold text-xs text-[#E27D60]">
+                      {(() => {
+                        const j = journalists.find(x => x.id === article.journalist_id);
+                        return j ? `${j.name} (Editor)` : "Anika Patel (Editor)";
+                      })()}
+                    </span>
                     <span className="text-[9px] text-white/40">Bot Feed</span>
                   </div>
                   

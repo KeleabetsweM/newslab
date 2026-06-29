@@ -1,6 +1,7 @@
 import React from "react";
 import { Image as ImageIcon, Briefcase, Eye, ShieldAlert, Sparkles } from "lucide-react";
 import { Article } from "../types";
+import SafeImage from "./SafeImage";
 
 interface ImagesViewProps {
   articles: Article[];
@@ -34,11 +35,11 @@ export default function ImagesView({ articles, onSelectArticle }: ImagesViewProp
               {/* Image box */}
               <div className="relative h-56 bg-[#F8F7F3]">
                 {article.featured_image ? (
-                  <img
+                  <SafeImage
                     src={article.featured_image}
                     alt={article.title}
+                    fallbackLabel={article.title}
                     className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs font-serif italic">

@@ -109,7 +109,7 @@ ${memoryContext || '- No approved memories yet.'}
     const isMock = (process.env.AI_PROVIDER || 'mock').toLowerCase() === 'mock';
 
     if (isMock) {
-      const fallbacks = [
+      let fallbacks = [
         {
           title: 'Sensory Delights at the Shongweni Farmers Market',
           topic: 'Shongweni Farmers Market in Durban',
@@ -121,6 +121,35 @@ ${memoryContext || '- No approved memories yet.'}
           storyIdea: 'An essential guide to packing the ultimate Cape Town picnic hamper, finding the coolest canopy walkways, and enjoying open-air lawns with toddler-friendly slopes.'
         }
       ];
+
+      if (journalist.id === 'oliver-mbatha') {
+        fallbacks = [
+          {
+            title: 'Soweto Derby: High Octane Soccer Clash',
+            topic: 'Soweto Derby Football',
+            storyIdea: 'An energetic report from FNB Stadium covering the fierce soccer rivalry between Kaizer Chiefs and Orlando Pirates, capturing the fan horns and street food.'
+          },
+          {
+            title: 'Underground Rhythms at Newtown Music Festival',
+            topic: 'Newtown Music Scene',
+            storyIdea: 'A punchy review of local jazz and hip hop artists performing live in the heart of Johannesburg, featuring street art tours and craft beer tents.'
+          }
+        ];
+      } else if (journalist.id === 'zola-ndlovu') {
+        fallbacks = [
+          {
+            title: 'Silicon Cape: Startups Powering Agritech',
+            topic: 'Western Cape Tech Startups',
+            storyIdea: 'An analytical profile of three young entrepreneurs in Cape Town deploying drone technology and IoT soil sensors to help small-scale olive farmers.'
+          },
+          {
+            title: 'Digital Rand: Inside the Fintech Boom',
+            topic: 'South African Fintech Platforms',
+            storyIdea: 'A deep-dive analysis into mobile payments adoption across township merchants, highlighting transaction fees and micro-loan opportunities.'
+          }
+        ];
+      }
+
       const selected = fallbacks[Math.floor(Math.random() * fallbacks.length)];
       chosenTopic = isSuggested ? selected.topic : chosenTopic;
       title = isSuggested ? selected.title : `Explore Mzansi: ${chosenTopic}`;

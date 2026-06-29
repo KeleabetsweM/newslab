@@ -39,6 +39,12 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedJournalistId, setSelectedJournalistId] = useState<string>("all");
+
+  const selectedJournalist =
+    selectedJournalistId === "all"
+      ? null
+      : journalists.find((j) => j.id === selectedJournalistId) || null;
 
   // Authenticate user
   useEffect(() => {
@@ -97,18 +103,23 @@ export default function App() {
       if (errorL) throw errorL;
 
       // Map logs to UI schema
-      const mappedLogs: AgentLog[] = (dataL || []).map((l: any) => ({
-        id: l.id,
-        timestamp: l.created_at,
-        journalist_id: 'anika-patel',
-        article_id: l.article_id,
-        action_type: l.action,
-        message: typeof l.output === 'object' && l.output?.message 
-          ? l.output.message 
-          : typeof l.output === 'string'
-            ? l.output
-            : `Anika Patel performed ${l.action}`
-      }));
+      const mappedLogs: AgentLog[] = (dataL || []).map((l: any) => {
+        const article = (dataA || []).find((a: any) => a.id === l.article_id);
+        const jId = article ? article.journalist_id : 'anika-patel';
+        const jName = (dataJ || []).find((j: any) => j.id === jId)?.name || 'Anika Patel';
+        return {
+          id: l.id,
+          timestamp: l.created_at,
+          journalist_id: jId,
+          article_id: l.article_id,
+          action_type: l.action,
+          message: typeof l.output === 'object' && l.output?.message 
+            ? l.output.message 
+            : typeof l.output === 'string'
+              ? l.output
+              : `${jName} performed ${l.action}`
+        };
+      });
 
       // Map journalists adding fallback avatar
       const mappedJ: Journalist[] = (dataJ || []).map((j: any) => {
@@ -139,13 +150,21 @@ export default function App() {
       // Fetch active completed image jobs to map featured images
       const { data: imageJobs } = await supabase
         .from('image_jobs')
-        .select('article_id, image_url')
-        .eq('generation_status', 'completed');
+        .select('article_id, image_url, provider, created_at')
+        .eq('generation_status', 'completed')
+        .not('image_url', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Image jobs loaded:', imageJobs);
+      }
 
       const imageMap: Record<string, string> = {};
       if (imageJobs) {
         imageJobs.forEach((job: any) => {
-          imageMap[job.article_id] = job.image_url;
+          if (job.article_id && job.image_url && !imageMap[job.article_id]) {
+            imageMap[job.article_id] = job.image_url;
+          }
         });
       }
 
@@ -300,7 +319,10 @@ export default function App() {
   const handleTriggerBrainstorm = async (topic?: string) => {
     try {
       setIsLoading(true);
-      const result = await callFunction<{ article_id: string }>('create-article', { topic: topic?.trim() || undefined });
+      const result = await callFunction<{ article_id: string }>('create-article', { 
+        topic: topic?.trim() || undefined,
+        journalist_id: selectedJournalistId === "all" ? undefined : selectedJournalistId
+      });
       await fetchState(); // reload
       setSelectedArticleId(result.article_id);
       setCurrentTab("article_detail");
@@ -407,12 +429,24 @@ export default function App() {
     setCurrentTab("article_detail");
   };
 
+  const scopedArticles = selectedJournalistId === "all"
+    ? articles
+    : articles.filter(a => a.journalist_id === selectedJournalistId);
+
+  const scopedMemories = selectedJournalistId === "all"
+    ? memories
+    : memories.filter(m => m.journalist_id === selectedJournalistId);
+
+  const scopedLogs = selectedJournalistId === "all"
+    ? logs
+    : logs.filter(l => l.journalist_id === selectedJournalistId);
+
   const getActiveJournalist = () => {
-    return journalists[0] || null;
+    return selectedJournalistId === "all" ? null : (journalists.find(j => j.id === selectedJournalistId) || null);
   };
 
   const getPendingApprovalsCount = () => {
-    return articles.filter(a => a.status === "awaiting_admin_review").length;
+    return scopedArticles.filter(a => a.status === "awaiting_admin_review").length;
   };
 
   const handleSignOut = async () => {
@@ -426,10 +460,10 @@ export default function App() {
       case "dashboard":
         return (
           <DashboardView
-            articles={articles}
+            articles={scopedArticles}
             journalist={getActiveJournalist()}
-            logs={logs}
-            memories={memories}
+            logs={scopedLogs}
+            memories={scopedMemories}
             onTriggerBrainstorm={handleTriggerBrainstorm}
             onSelectArticle={handleSelectArticle}
             onResetDatabase={handleResetDatabase}
@@ -438,7 +472,7 @@ export default function App() {
       case "articles":
         return (
           <ArticlesView
-            articles={articles}
+            articles={scopedArticles}
             onSelectArticle={handleSelectArticle}
           />
         );
@@ -472,7 +506,7 @@ export default function App() {
       case "images":
         return (
           <ImagesView
-            articles={articles}
+            articles={scopedArticles}
             onSelectArticle={handleSelectArticle}
           />
         );
@@ -480,8 +514,8 @@ export default function App() {
         return (
           <JournalistProfileView
             journalists={journalists}
-            articles={articles}
-            memories={memories}
+            articles={scopedArticles}
+            memories={scopedMemories}
             onRefresh={fetchState}
             onSelectArticle={handleSelectArticle}
             onUpdateMemoryStatus={handleUpdateMemoryStatus}
@@ -490,14 +524,14 @@ export default function App() {
       case "memory":
         return (
           <MemoryView
-            memories={memories}
+            memories={scopedMemories}
             onUpdateMemoryStatus={handleUpdateMemoryStatus}
           />
         );
       case "approvals":
         return (
           <ApprovalsView
-            articles={articles}
+            articles={scopedArticles}
             onSelectArticle={handleSelectArticle}
             onTelegramAction={handleTelegramAction}
           />
@@ -543,14 +577,69 @@ export default function App() {
       />
 
       {/* 2. Main Workspace */}
-      <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full h-full">
+      <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full h-full space-y-6">
+        {currentTab !== "settings" && currentTab !== "profile" && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl border border-[#E5E2D9] shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-[#E27D60] animate-pulse"></div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Newsroom Context:</span>
+              <div className="relative">
+                <select
+                  value={selectedJournalistId}
+                  onChange={(e) => setSelectedJournalistId(e.target.value)}
+                  className="appearance-none pr-8 pl-3 py-1.5 text-xs bg-[#F8F7F3] border border-[#E5E2D9] rounded font-bold text-[#2D2926] focus:outline-none focus:border-[#E27D60] shadow-sm transition-colors cursor-pointer"
+                >
+                  <option value="all">All Journalists (Newsroom-wide)</option>
+                  {journalists.map((j) => (
+                    <option key={j.id} value={j.id}>{j.name} ({j.role})</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2D2926]">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {selectedJournalist ? (
+              <div className="flex items-center gap-2 bg-[#F8F7F3] px-3 py-1 rounded-full border border-[#E5E2D9]">
+                <img
+                  src={selectedJournalist.avatar}
+                  alt={selectedJournalist.name}
+                  className="w-5 h-5 rounded-full object-cover border border-[#E27D60]"
+                  referrerPolicy="no-referrer"
+                />
+                <span className="text-xs font-serif font-bold text-[#2D2926]">{selectedJournalist.name}</span>
+                <span className="text-[10px] text-slate-400 font-mono">|</span>
+                <span className="text-[10px] text-[#E27D60] font-mono font-bold uppercase tracking-wider">{selectedJournalist.role}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
+                <div className="flex -space-x-1.5">
+                  {journalists.slice(0, 3).map((j) => (
+                    <img
+                      key={j.id}
+                      src={j.avatar}
+                      alt={j.name}
+                      className="w-5 h-5 rounded-full object-cover border border-white"
+                      referrerPolicy="no-referrer"
+                    />
+                  ))}
+                </div>
+                <span className="text-xs font-serif text-slate-600 font-bold">Newsroom Roster ({journalists.length} Active)</span>
+              </div>
+            )}
+          </div>
+        )}
         {renderViewContent()}
       </main>
 
       {/* 3. Telegram Simulator Overlay */}
       <TelegramSimulator
-        articles={articles}
+        articles={scopedArticles}
         journalist={getActiveJournalist()}
+        journalists={journalists}
         onTelegramAction={handleTelegramAction}
         telegramConfig={telegramConfig}
       />

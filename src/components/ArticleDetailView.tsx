@@ -18,6 +18,7 @@ import {
   Award
 } from "lucide-react";
 import { Article, ArticleStatus } from "../types";
+import SafeImage from "./SafeImage";
 
 interface ArticleDetailViewProps {
   article: Article;
@@ -427,11 +428,11 @@ export default function ArticleDetailView({
                     {article.featured_image ? (
                       <div className="space-y-2">
                         <div className="relative rounded border border-[#E5E2D9] overflow-hidden h-44 bg-slate-50 shadow-sm">
-                          <img
+                          <SafeImage
                             src={article.featured_image}
                             alt="Staged"
+                            fallbackLabel={article.title}
                             className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
                           />
                         </div>
                         <p className="text-[10px] text-slate-400 text-center leading-normal italic font-serif">

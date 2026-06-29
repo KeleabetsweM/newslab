@@ -92,7 +92,7 @@ export default function Sidebar({
       )}
 
       {/* Active Journalist Profile Indicator */}
-      {journalist && (
+      {journalist ? (
         <div className="p-4 border-t border-white/10 bg-[#111111]">
           <div className="flex items-center gap-3">
             <img
@@ -111,6 +111,26 @@ export default function Sidebar({
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#E27D60] animate-pulse"></span>
                 <span className="text-[9px] text-[#E27D60] font-mono">Sandbox Live</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 border-t border-white/10 bg-[#111111]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full border-2 border-slate-500 bg-slate-800 flex items-center justify-center">
+              <span className="text-xs font-serif font-bold text-slate-300">ALL</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-xs font-semibold text-white truncate">
+                Newsroom View
+              </h4>
+              <p className="text-[10px] text-white/40 truncate">
+                All Active Journalists
+              </p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[9px] text-emerald-400 font-mono">Aggregation Mode</span>
               </div>
             </div>
           </div>

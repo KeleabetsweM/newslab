@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Search, SlidersHorizontal, Calendar, Eye, Globe, Sparkles } from "lucide-react";
 import { Article, ArticleStatus } from "../types";
+import SafeImage from "./SafeImage";
 
 interface ArticlesViewProps {
   articles: Article[];
@@ -104,11 +105,11 @@ export default function ArticlesView({ articles, onSelectArticle }: ArticlesView
             >
               {/* Card Image */}
               <div className="relative h-44 bg-[#F8F7F3] overflow-hidden">
-                <img
-                  src={article.featured_image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&fit=crop"}
+                <SafeImage
+                  src={article.featured_image}
                   alt={article.title}
+                  fallbackLabel={article.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                 

@@ -11,6 +11,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { Article, Journalist, AgentLog, JournalistMemory } from "../types";
+import SafeImage from "./SafeImage";
 
 interface DashboardViewProps {
   articles: Article[];
@@ -71,7 +72,7 @@ export default function DashboardView({
             Newsroom Laboratory
           </h2>
           <p className="text-xs text-slate-500 mt-1 font-serif italic">
-            Phase 0 Private Sandbox: Monitor, audit, and evaluate Anika Patel’s 7-day test run.
+            Phase 0 Private Sandbox: Monitor, audit, and evaluate {journalist ? `${journalist.name}’s` : "the newsroom’s"} sandbox execution.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -193,17 +194,17 @@ export default function DashboardView({
             <div className="divide-y divide-[#E5E2D9]">
               {articles.length === 0 ? (
                 <div className="p-8 text-center text-slate-400 text-xs font-serif italic">
-                  No articles created yet. Submit a topic above to initiate Anika's generation pipeline!
+                  No articles created yet. Submit a topic above to initiate the journalist generation pipeline!
                 </div>
               ) : (
                 articles.slice(0, 4).map((article) => (
                   <div key={article.id} className="p-4 hover:bg-[#F8F7F3]/40 transition-colors flex items-center justify-between">
                     <div className="flex items-center gap-4 min-w-0">
-                      <img
-                        src={article.featured_image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=150&h=150&fit=crop"}
+                      <SafeImage
+                        src={article.featured_image}
                         alt={article.title}
+                        fallbackLabel={article.title}
                         className="w-12 h-12 rounded object-cover border border-[#E5E2D9]"
-                        referrerPolicy="no-referrer"
                       />
                       <div className="min-w-0">
                         <h4 className="text-sm font-serif font-bold text-[#2D2926] truncate max-w-md">

@@ -108,7 +108,7 @@ export const handler: Handler = async (event) => {
       .eq('status', 'approved');
     const memoryContext = (memories || []).map((m: any) => `- ${m.memory_content}`).join('\n');
 
-    const systemPrompt = `You are ${journalist.name}, the Lifestyle & Community Editor for ${journalist.website}.
+    const systemPrompt = `You are ${journalist.name}, the ${journalist.role} for ${journalist.website}.
 Tone: ${journalist.tone}
 Personality: ${journalist.personality}
 Rules:
@@ -347,19 +347,20 @@ Provide the output strictly in JSON matching this schema:
 
       const briefStr = String((briefArt?.content as any)?.text || '');
 
-      let imageUrl = 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop';
+      let imageUrl = '';
       let providerName = 'placeholder';
       let storagePath = '';
 
-      if (!isMock) {
-        try {
-          const generated = await generateFeaturedImage(promptStr, id);
-          imageUrl = generated.image_url;
-          providerName = generated.provider;
-          storagePath = generated.storage_path || '';
-        } catch (err) {
-          console.error('Image gen failed, fallback to unsplash:', err);
-        }
+      try {
+        const generated = await generateFeaturedImage(promptStr, id);
+        imageUrl = generated.image_url;
+        providerName = generated.provider;
+        storagePath = generated.storage_path || '';
+      } catch (err) {
+        console.error('Image generation failed:', err);
+        imageUrl = '';
+        providerName = 'failed';
+        storagePath = '';
       }
 
       // 1. Create Image Job
@@ -608,7 +609,7 @@ Provide the output strictly in JSON matching this schema:
               subject: `🚨 Newsroom Review: ${article.title || 'New Draft Ready'}`,
               html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
-                  <h2 style="color: #1a1a1a; margin-top: 0;">Anika Patel has completed a new draft!</h2>
+                  <h2 style="color: #1a1a1a; margin-top: 0;">${journalist.name} has completed a new draft!</h2>
                   <p style="color: #666; font-size: 14px; line-height: 1.5;">The article is now in <strong>awaiting_admin_review</strong> status and is waiting for your verification in the Newsroom Sandbox.</p>
                   <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 20px 0;" />
                   <div style="background-color: #fafafa; padding: 15px; border-radius: 6px;">
@@ -652,7 +653,7 @@ Provide the output strictly in JSON matching this schema:
     // 6. Write agent logs
     await supabase.from('agent_logs').insert({
       article_id: id,
-      agent_name: 'Anika Patel',
+      agent_name: journalist.name,
       action: currentStatus,
       output: { message: `${journalist.name} transition: ${currentStatus.toUpperCase()} ➜ ${nextStatus.toUpperCase()}. ${logMsg}` }
     });
