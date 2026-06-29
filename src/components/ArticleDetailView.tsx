@@ -28,6 +28,196 @@ interface ArticleDetailViewProps {
   onTelegramAction: (articleId: string, action: string, revisionText?: string) => Promise<void>;
 }
 
+function renderImageQualityReview(reportRaw: string) {
+  try {
+    const data = JSON.parse(reportRaw);
+    const rating = data.rating ?? 5;
+    const passed = data.passed ?? true;
+    const comments = data.comments || "";
+
+    const ratingStars = "★".repeat(rating) + "☆".repeat(5 - rating);
+    const statusColor = passed ? "text-emerald-700 bg-emerald-50 border-emerald-200" : "text-rose-700 bg-rose-50 border-rose-200";
+
+    return (
+      <div className="space-y-3 bg-[#F8F7F3]/40 p-4 rounded border border-[#E5E2D9] font-sans">
+        <div className="flex items-center justify-between border-b border-[#E5E2D9] pb-2">
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded border uppercase ${statusColor}`}>
+              {passed ? "Approved" : "Needs Review"}
+            </span>
+          </div>
+          <div className="text-amber-500 font-mono text-xs font-bold tracking-wider">
+            {ratingStars} ({rating}/5)
+          </div>
+        </div>
+
+        {comments && (
+          <div className="space-y-1">
+            <h5 className="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Director Comments</h5>
+            <p className="text-xs text-slate-700 leading-relaxed">{comments}</p>
+          </div>
+        )}
+      </div>
+    );
+  } catch (e) {
+    return (
+      <pre className="text-xs text-slate-700 bg-[#F8F7F3]/40 p-4 rounded border border-[#E5E2D9] whitespace-pre-wrap leading-relaxed">
+        {reportRaw}
+      </pre>
+    );
+  }
+}
+
+function renderFactCheckReport(reportRaw: string) {
+  try {
+    const data = JSON.parse(reportRaw);
+    const score = data.score ?? 100;
+    const status = data.status ?? "passed";
+    const verifiedClaims = data.verifiedClaims || [];
+    const weakClaims = data.weakClaims || [];
+    const detailedReport = data.detailedReport || "";
+
+    const scoreColor = score >= 90 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : score >= 70 ? "text-amber-600 bg-amber-50 border-amber-200" : "text-rose-600 bg-rose-50 border-rose-200";
+    const statusColor = status === "passed" ? "text-emerald-700 bg-emerald-100 border-emerald-300" : "text-amber-700 bg-amber-100 border-amber-300";
+
+    return (
+      <div className="space-y-4 bg-[#F8F7F3]/40 p-5 rounded border border-[#E5E2D9] font-sans">
+        <div className="flex items-center justify-between border-b border-[#E5E2D9] pb-3">
+          <div className="flex items-center gap-3">
+            <span className={`text-xs font-bold font-mono px-2 py-1 rounded border uppercase ${statusColor}`}>
+              {status}
+            </span>
+            <p className="text-xs text-slate-500 font-medium">Fact-Check Audit Run</p>
+          </div>
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold font-mono ${scoreColor}`}>
+            <Award className="h-3.5 w-3.5" />
+            Score: {score}/100
+          </div>
+        </div>
+
+        {detailedReport && (
+          <div className="space-y-1">
+            <h5 className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Detailed Analysis</h5>
+            <p className="text-xs text-slate-700 leading-relaxed font-sans">{detailedReport}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* Verified Claims */}
+          <div className="space-y-2">
+            <h5 className="text-[10px] font-bold uppercase text-emerald-600 tracking-wider flex items-center gap-1">
+              <Check className="h-3.5 w-3.5" /> Verified Claims ({verifiedClaims.length})
+            </h5>
+            {verifiedClaims.length > 0 ? (
+              <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {verifiedClaims.map((claim: string, idx: number) => (
+                  <li key={idx} className="text-xs text-slate-600 bg-emerald-50/40 border border-emerald-100/30 rounded p-1.5 flex gap-2">
+                    <span className="text-emerald-500 font-bold select-none">•</span>
+                    <span>{claim}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-slate-400 font-serif italic">No verified claims found.</p>
+            )}
+          </div>
+
+          {/* Weak Claims */}
+          <div className="space-y-2">
+            <h5 className="text-[10px] font-bold uppercase text-amber-600 tracking-wider flex items-center gap-1">
+              <AlertTriangle className="h-3.5 w-3.5" /> Weak / Speculative Claims ({weakClaims.length})
+            </h5>
+            {weakClaims.length > 0 ? (
+              <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {weakClaims.map((claim: string, idx: number) => (
+                  <li key={idx} className="text-xs text-slate-600 bg-amber-50/40 border border-amber-100/30 rounded p-1.5 flex gap-2">
+                    <span className="text-amber-500 font-bold select-none">⚠</span>
+                    <span>{claim}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-emerald-700 bg-emerald-50/30 border border-emerald-100/20 rounded p-2 font-serif italic">
+                Excellent! Zero weak or unverified claims detected.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  } catch (e) {
+    return (
+      <div className="text-xs text-slate-700 bg-[#F8F7F3]/40 p-4 rounded border border-[#E5E2D9] whitespace-pre-wrap leading-relaxed font-sans">
+        {reportRaw}
+      </div>
+    );
+  }
+}
+
+function renderBiasCheckReport(reportRaw: string) {
+  try {
+    const data = JSON.parse(reportRaw);
+    const complianceLevel = data.complianceLevel || "high";
+    const issuesFound = data.issuesFound || [];
+    const recommendations = data.recommendations || "";
+    const report = data.report || "";
+
+    const complianceColor = complianceLevel === "high" ? "text-emerald-700 bg-emerald-50 border-emerald-200" : complianceLevel === "medium" ? "text-amber-700 bg-amber-50 border-amber-200" : "text-rose-700 bg-rose-50 border-rose-200";
+
+    return (
+      <div className="space-y-4 bg-[#F8F7F3]/40 p-5 rounded border border-[#E5E2D9] font-sans">
+        <div className="flex items-center justify-between border-b border-[#E5E2D9] pb-3">
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-bold font-mono px-2.5 py-1 rounded border uppercase ${complianceColor}`}>
+              Compliance: {complianceLevel}
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 font-medium">Bias & Sensitivity Compliance</p>
+        </div>
+
+        {report && (
+          <div className="space-y-1">
+            <h5 className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Audit Evaluation</h5>
+            <p className="text-xs text-slate-700 leading-relaxed font-sans">{report}</p>
+          </div>
+        )}
+
+        {recommendations && (
+          <div className="space-y-1 pt-1">
+            <h5 className="text-[10px] font-bold uppercase text-[#E27D60] tracking-wider">PD Recommendations</h5>
+            <p className="text-xs text-slate-700 leading-relaxed font-sans bg-amber-50/20 border border-amber-100/30 rounded p-2">{recommendations}</p>
+          </div>
+        )}
+
+        <div className="space-y-2 pt-1">
+          <h5 className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Issues Identified ({issuesFound.length})</h5>
+          {issuesFound.length > 0 ? (
+            <ul className="space-y-1.5">
+              {issuesFound.map((issue: string, idx: number) => (
+                <li key={idx} className="text-xs text-slate-600 bg-rose-50/40 border border-rose-100/30 rounded p-1.5 flex gap-2">
+                  <span className="text-rose-500 font-bold select-none">✕</span>
+                  <span>{issue}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-emerald-700 bg-emerald-50/30 border border-emerald-100/20 rounded p-2 font-serif italic">
+              Perfect! No issues with representation, bias, or tone guidelines detected.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  } catch (e) {
+    return (
+      <div className="text-xs text-slate-700 bg-[#F8F7F3]/40 p-4 rounded border border-[#E5E2D9] whitespace-pre-wrap leading-relaxed font-sans">
+        {reportRaw}
+      </div>
+    );
+  }
+}
+
+
 export default function ArticleDetailView({
   article,
   onBack,
@@ -454,9 +644,7 @@ export default function ArticleDetailView({
                     <h4 className="text-[10px] font-bold uppercase text-[#2D2926] tracking-widest font-mono">
                       Staging Quality Review Audit
                     </h4>
-                    <pre className="text-xs text-slate-700 bg-[#F8F7F3]/40 p-4 rounded border border-[#E5E2D9] whitespace-pre-wrap leading-relaxed">
-                      {article.artifacts.image_quality_review}
-                    </pre>
+                    {renderImageQualityReview(article.artifacts.image_quality_review)}
                   </div>
                 )}
               </div>
@@ -471,9 +659,7 @@ export default function ArticleDetailView({
                     Fact-Check Audit Report
                   </h4>
                   {article.artifacts.fact_check_report ? (
-                    <div className="text-xs text-slate-700 bg-[#F8F7F3]/40 p-4 rounded border border-[#E5E2D9] whitespace-pre-wrap leading-relaxed font-sans">
-                      {article.artifacts.fact_check_report}
-                    </div>
+                    renderFactCheckReport(article.artifacts.fact_check_report)
                   ) : (
                     <div className="p-8 text-center bg-[#F8F7F3]/20 rounded border border-[#E5E2D9] text-slate-400 text-xs font-serif italic">
                       Fact-check audit pending article draft execution.
@@ -488,9 +674,7 @@ export default function ArticleDetailView({
                     Sensitivities & Bias Audit Report
                   </h4>
                   {article.artifacts.bias_check_report ? (
-                    <div className="text-xs text-slate-700 bg-[#F8F7F3]/40 p-4 rounded border border-[#E5E2D9] whitespace-pre-wrap leading-relaxed font-sans">
-                      {article.artifacts.bias_check_report}
-                    </div>
+                    renderBiasCheckReport(article.artifacts.bias_check_report)
                   ) : (
                     <div className="p-8 text-center bg-[#F8F7F3]/20 rounded border border-[#E5E2D9] text-slate-400 text-xs font-serif italic">
                       Guideline bias auditing triggers concurrently with draft generation.
