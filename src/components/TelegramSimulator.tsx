@@ -25,6 +25,7 @@ export default function TelegramSimulator({
   const [revisionForId, setRevisionForId] = useState<string | null>(null);
   const [revisionText, setRevisionText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<string | null>(null);
 
   // Filter articles that are in states relevant to Telegram Simulator (or all recent ones)
   const pendingArticles = articles.filter(
@@ -39,16 +40,20 @@ export default function TelegramSimulator({
     }
 
     setIsSubmitting(true);
+    setSubmittingAction(`${articleId}:${action}`);
     await onTelegramAction(articleId, action);
+    setSubmittingAction(null);
     setIsSubmitting(false);
   };
 
   const submitRevision = async (articleId: string) => {
     if (!revisionText.trim()) return;
     setIsSubmitting(true);
+    setSubmittingAction(`${articleId}:revision_submit`);
     await onTelegramAction(articleId, "revision", revisionText);
     setRevisionForId(null);
     setRevisionText("");
+    setSubmittingAction(null);
     setIsSubmitting(false);
   };
 
@@ -173,40 +178,67 @@ export default function TelegramSimulator({
                   </div>
                 </div>
 
-                {/* Interactive Inline Buttons */}
+                 {/* Interactive Inline Buttons */}
                 {article.status === "awaiting_admin_review" && (
                   <div className="grid grid-cols-2 gap-1.5 mt-2">
                     <button
                       onClick={() => handleActionClick(article.id, "approve")}
                       disabled={isSubmitting}
-                      className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase bg-[#E27D60] hover:bg-[#e27d60]/95 text-white py-1.5 rounded transition-colors disabled:opacity-50"
+                      className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase bg-[#E27D60] hover:bg-[#e27d60]/95 text-white py-1.5 rounded transition-colors disabled:opacity-50"
                     >
-                      <Check className="h-3 w-3" />
-                      Approve
+                      {submittingAction === `${article.id}:approve` ? (
+                        <>
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                          Approving...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-3 w-3" />
+                          Approve
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => handleActionClick(article.id, "revision")}
                       disabled={isSubmitting}
-                      className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase bg-white/10 hover:bg-white/20 text-white border border-white/15 py-1.5 rounded transition-colors disabled:opacity-50"
+                      className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase bg-white/10 hover:bg-white/20 text-white border border-white/15 py-1.5 rounded transition-colors disabled:opacity-50"
                     >
-                      <RefreshCw className="h-3 w-3 animate-spin-slow" />
-                      Revision
+                      <RefreshCw className={`h-3 w-3 ${revisionForId === article.id ? "animate-spin" : "animate-spin-slow"}`} />
+                      {revisionForId === article.id ? "Editing..." : "Revision"}
                     </button>
                     <button
                       onClick={() => handleActionClick(article.id, "regenerate")}
                       disabled={isSubmitting}
-                      className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase bg-[#3D3834] hover:bg-[#3d3834]/80 text-white border border-white/10 py-1.5 rounded transition-colors disabled:opacity-50 col-span-2"
+                      className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase bg-[#3D3834] hover:bg-[#3d3834]/80 text-white border border-white/10 py-1.5 rounded transition-colors disabled:opacity-50 col-span-2"
                     >
-                      <Sparkles className="h-3 w-3 text-[#E27D60]" />
-                      Regenerate Image
+                      {submittingAction === `${article.id}:regenerate` ? (
+                        <>
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                          Regenerating Image...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 text-[#E27D60]" />
+                          Regenerate Image
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => handleActionClick(article.id, "reject")}
                       disabled={isSubmitting}
-                      className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase bg-red-950/20 hover:bg-red-950/40 text-red-300 border border-red-500/10 py-1.5 rounded transition-colors disabled:opacity-50 col-span-2"
+                      className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase bg-red-950/20 hover:bg-red-950/40 text-red-300 border border-red-500/10 py-1.5 rounded transition-colors disabled:opacity-50 col-span-2"
                     >
-                      <X className="h-3 w-3" />
-                      Reject Draft
+                      {submittingAction === `${article.id}:reject` ? (
+                        <>
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                          Rejecting...
+                        </>
+                      ) : (
+                        <>
+                          <X className="h-3 w-3" />
+                          Reject Draft
+                        </>
+                      )}
                     </button>
                   </div>
                 )}
@@ -234,9 +266,16 @@ export default function TelegramSimulator({
                       <button
                         onClick={() => submitRevision(article.id)}
                         disabled={isSubmitting || !revisionText.trim()}
-                        className="bg-[#E27D60] hover:bg-[#E27D60]/90 text-white font-bold text-[10px] px-2.5 py-1 rounded disabled:opacity-50"
+                        className="bg-[#E27D60] hover:bg-[#E27D60]/90 text-white font-bold text-[10px] px-2.5 py-1.5 rounded disabled:opacity-50 flex items-center gap-1.5 min-w-[100px] justify-center"
                       >
-                        Send Revision
+                        {submittingAction === `${article.id}:revision_submit` ? (
+                          <>
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Send Revision"
+                        )}
                       </button>
                     </div>
                   </div>

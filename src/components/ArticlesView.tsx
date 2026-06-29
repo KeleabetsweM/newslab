@@ -91,6 +91,19 @@ export default function ArticlesView({ articles, onSelectArticle }: ArticlesView
         </div>
       </div>
 
+      {/* Active Category Selection Status Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3 bg-white border border-[#E5E2D9] rounded-lg shadow-sm text-xs text-slate-600 font-sans">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">Active Category:</span>
+          <span className="font-bold text-white bg-[#E27D60] px-2.5 py-0.5 rounded border border-[#E27D60] uppercase tracking-wider text-[10px] shadow-sm">
+            {statuses.find(s => s.value === statusFilter)?.label}
+          </span>
+        </div>
+        <div className="text-[10px] font-mono text-slate-400">
+          Showing {filteredArticles.length} of {articles.length} articles
+        </div>
+      </div>
+
       {/* Articles Grid */}
       {filteredArticles.length === 0 ? (
         <div className="bg-white rounded border border-[#E5E2D9] p-12 text-center text-slate-400 text-xs font-serif italic">

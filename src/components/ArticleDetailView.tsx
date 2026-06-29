@@ -229,6 +229,7 @@ export default function ArticleDetailView({
   const [feedbackText, setFeedbackText] = useState("");
   const [isStepping, setIsStepping] = useState(false);
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [submittingFeedbackType, setSubmittingFeedbackType] = useState<"general" | "revision" | null>(null);
 
   const pipelineSteps: { status: ArticleStatus; label: string; desc: string }[] = [
     { status: "idea", label: "Story Pitch", desc: "Anika brainstorms or receives topic and drafts pitch" },
@@ -265,12 +266,14 @@ export default function ArticleDetailView({
   const handleSendFeedback = async (type: "general" | "revision") => {
     if (!feedbackText.trim()) return;
     setIsSubmittingFeedback(true);
+    setSubmittingFeedbackType(type);
     if (type === "revision") {
       await onSubmitFeedback(article.id, feedbackText, "revision_requested");
     } else {
       await onSubmitFeedback(article.id, feedbackText);
     }
     setFeedbackText("");
+    setSubmittingFeedbackType(null);
     setIsSubmittingFeedback(false);
   };
 
@@ -367,15 +370,31 @@ export default function ArticleDetailView({
                   disabled={isStepping}
                   className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded bg-[#E27D60] hover:bg-[#E27D60]/90 text-white font-bold text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
                 >
-                  <Sparkles className="h-4 w-4" />
-                  {isStepping ? "Processing Agent Phase..." : "Execute Next Phase"}
+                  {isStepping ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Processing Agent Phase...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Execute Next Phase
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleFullPipeline}
                   disabled={isStepping}
-                  className="w-full py-2 text-center border border-[#E5E2D9] hover:bg-[#F8F7F3] text-slate-600 font-bold text-xs uppercase tracking-wider rounded transition-colors disabled:opacity-50"
+                  className="w-full py-2 text-center border border-[#E5E2D9] hover:bg-[#F8F7F3] text-slate-600 font-bold text-xs uppercase tracking-wider rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
-                  Run Full Sandbox Chain
+                  {isStepping ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      Running Full Chain...
+                    </>
+                  ) : (
+                    "Run Full Sandbox Chain"
+                  )}
                 </button>
               </div>
             )}
@@ -401,16 +420,30 @@ export default function ArticleDetailView({
                 <button
                   onClick={() => handleSendFeedback("general")}
                   disabled={isSubmittingFeedback || !feedbackText.trim()}
-                  className="flex-1 py-1.5 bg-slate-100 text-slate-800 hover:bg-slate-200 text-[11px] font-bold rounded transition-colors disabled:opacity-50"
+                  className="flex-1 py-1.5 bg-slate-100 text-slate-800 hover:bg-slate-200 text-[11px] font-bold rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
-                  Record Lesson
+                  {submittingFeedbackType === "general" ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      Recording...
+                    </>
+                  ) : (
+                    "Record Lesson"
+                  )}
                 </button>
                 <button
                   onClick={() => handleSendFeedback("revision")}
                   disabled={isSubmittingFeedback || !feedbackText.trim()}
-                  className="flex-1 py-1.5 bg-blue-500 text-white hover:bg-blue-600 text-[11px] font-bold rounded transition-colors disabled:opacity-50"
+                  className="flex-1 py-1.5 bg-blue-500 text-white hover:bg-blue-600 text-[11px] font-bold rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
-                  Request Revision
+                  {submittingFeedbackType === "revision" ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      Requesting...
+                    </>
+                  ) : (
+                    "Request Revision"
+                  )}
                 </button>
               </div>
             </div>
