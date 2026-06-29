@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Send, Shield, Smartphone, Smile, CircleAlert, Sparkles, Check, RefreshCw, X, MessageSquareReply } from "lucide-react";
+import { Send, Shield, Smartphone, Smile, CircleAlert, Sparkles, Check, RefreshCw, X, MessageSquareReply, ChevronRight } from "lucide-react";
 import { Article, Journalist } from "../types";
 
 interface TelegramSimulatorProps {
@@ -19,7 +19,7 @@ export default function TelegramSimulator({
   onTelegramAction,
   telegramConfig
 }: TelegramSimulatorProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false); // Default to collapsed for a cleaner dashboard initially
   const [revisionForId, setRevisionForId] = useState<string | null>(null);
   const [revisionText, setRevisionText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,8 +65,25 @@ export default function TelegramSimulator({
     }
   };
 
+  if (!isOpen) {
+    return (
+      <div 
+        onClick={() => setIsOpen(true)}
+        className="w-12 bg-[#2D2926] border-l border-white/10 h-screen flex flex-col items-center py-4 cursor-pointer hover:bg-[#3D3834] transition-all group shrink-0"
+        title="Open Telegram Simulator"
+      >
+        <Smartphone className="h-5 w-5 text-[#E27D60] group-hover:scale-110 transition-transform mb-6" />
+        <div className="flex-1 flex items-center justify-center">
+          <span className="text-[10px] font-bold text-slate-400 tracking-widest font-serif italic uppercase select-none whitespace-nowrap" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+            Telegram Simulator
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-80 bg-[#2D2926] border-l border-white/10 h-screen flex flex-col font-sans">
+    <div className="w-80 bg-[#2D2926] border-l border-white/10 h-screen flex flex-col font-sans shrink-0 transition-all">
       {/* Device Header */}
       <div className="px-4 py-3 bg-[#1A1A1A] border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -75,15 +92,24 @@ export default function TelegramSimulator({
             Telegram Simulator
           </h3>
         </div>
-        {telegramConfig.is_active ? (
-          <span className="flex items-center gap-1 text-[9px] bg-[#E27D60]/20 text-[#E27D60] border border-[#E27D60]/30 px-1.5 py-0.5 rounded font-mono font-bold">
-            Real Bot Active
-          </span>
-        ) : (
-          <span className="flex items-center gap-1 text-[9px] bg-white/10 text-white/80 border border-white/20 px-1.5 py-0.5 rounded font-mono font-bold">
-            Sandbox Sim
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          {telegramConfig.is_active ? (
+            <span className="flex items-center gap-1 text-[9px] bg-[#E27D60]/20 text-[#E27D60] border border-[#E27D60]/30 px-1 py-0.5 rounded font-mono font-bold">
+              Active
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-[9px] bg-white/10 text-white/80 border border-white/20 px-1 py-0.5 rounded font-mono font-bold">
+              Sim
+            </span>
+          )}
+          <button 
+            onClick={() => setIsOpen(false)}
+            className="p-1 hover:bg-white/10 rounded transition-colors text-slate-400 hover:text-white"
+            title="Collapse Simulator"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Simulator Guidance */}
