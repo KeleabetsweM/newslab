@@ -212,3 +212,89 @@ create trigger set_articles_updated_at before update on articles for each row ex
 
 drop trigger if exists set_image_jobs_updated_at on image_jobs;
 create trigger set_image_jobs_updated_at before update on image_jobs for each row execute function set_updated_at();
+
+-- Phase 2A: Automated Newsroom Scheduler tables
+create table if not exists journalist_schedules (
+  id uuid primary key default gen_random_uuid(),
+  journalist_id text references journalists(id) on delete cascade,
+  enabled boolean not null default false,
+  frequency text not null default 'weekly' check (frequency in ('daily','weekly','manual')),
+  days_of_week int[] not null default '{}',
+  preferred_hour_utc int not null default 7 check (preferred_hour_utc >= 0 and preferred_hour_utc <= 23),
+  timezone text not null default 'Africa/Johannesburg',
+  weekly_quota int not null default 3,
+  max_pending_reviews int not null default 2,
+  auto_advance boolean not null default true,
+  stop_status text not null default 'awaiting_admin_review',
+  next_run_at timestamptz,
+  last_run_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(journalist_id)
+);
+
+create table if not exists agent_jobs (
+  id uuid primary key default gen_random_uuid(),
+  job_type text not null check (job_type in ('create_article','run_pipeline_step','send_review_notification')),
+  journalist_id text references journalists(id) on delete cascade,
+  article_id uuid references articles(id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending','running','completed','failed','skipped')),
+  priority int not null default 5,
+  attempts int not null default 0,
+  max_attempts int not null default 3,
+  scheduled_for timestamptz not null default now(),
+  locked_at timestamptz,
+  completed_at timestamptz,
+  error text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists agent_runs (
+  id uuid primary key default gen_random_uuid(),
+  run_type text not null default 'scheduler',
+  started_at timestamptz not null default now(),
+  finished_at timestamptz,
+  status text not null default 'running' check (status in ('running','completed','failed')),
+  jobs_created int not null default 0,
+  jobs_processed int not null default 0,
+  notes text,
+  error text,
+  metadata jsonb not null default '{}'::jsonb
+);
+
+alter table journalist_schedules enable row level security;
+alter table agent_jobs enable row level security;
+alter table agent_runs enable row level security;
+
+do $$
+declare
+  tbl text;
+begin
+  foreach tbl in array array['journalist_schedules','agent_jobs','agent_runs'] loop
+    execute format('drop policy if exists "authenticated_read_%s" on %I', tbl, tbl);
+    execute format('create policy "authenticated_read_%s" on %I for select to authenticated using (true)', tbl, tbl);
+  end loop;
+end $$;
+
+drop trigger if exists set_journalist_schedules_updated_at on journalist_schedules;
+create trigger set_journalist_schedules_updated_at before update on journalist_schedules for each row execute function set_updated_at();
+
+drop trigger if exists set_agent_jobs_updated_at on agent_jobs;
+create trigger set_agent_jobs_updated_at before update on agent_jobs for each row execute function set_updated_at();
+
+insert into journalist_schedules (journalist_id, enabled, frequency, days_of_week, preferred_hour_utc, timezone, weekly_quota, max_pending_reviews, auto_advance, stop_status)
+values (
+  'anika-patel',
+  true,
+  'weekly',
+  array[1, 3, 5],
+  7,
+  'Africa/Johannesburg',
+  3,
+  2,
+  true,
+  'awaiting_admin_review'
+)
+on conflict (journalist_id) do nothing;

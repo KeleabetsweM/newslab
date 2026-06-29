@@ -21,10 +21,14 @@ import {
   ExternalLink,
   ChevronRight,
   Save,
-  RotateCcw
+  RotateCcw,
+  Calendar,
+  Play,
+  Clock
 } from "lucide-react";
-import { Journalist, Article, JournalistMemory } from "../types";
+import { Journalist, Article, JournalistMemory, JournalistSchedule } from "../types";
 import { supabase } from "../lib/supabaseBrowser";
+import { callFunction } from "../lib/clientApi";
 
 interface JournalistProfileViewProps {
   journalists: Journalist[];
@@ -45,7 +49,7 @@ export default function JournalistProfileView({
 }: JournalistProfileViewProps) {
   const [selectedJId, setSelectedJId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"persona" | "articles" | "memory" | "sources">("persona");
+  const [activeTab, setActiveTab] = useState<"persona" | "schedule" | "articles" | "memory" | "sources">("persona");
   
   // Edit & Create States
   const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +70,21 @@ export default function JournalistProfileView({
   // Selected Journalist's sources state
   const [sources, setSources] = useState<any[]>([]);
   const [sourcesLoading, setSourcesLoading] = useState(false);
+
+  // Scheduler States
+  const [schedule, setSchedule] = useState<JournalistSchedule | null>(null);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [isSavingSchedule, setIsSavingSchedule] = useState(false);
+  const [scheduleMessage, setScheduleMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Editable Schedule Fields
+  const [schedEnabled, setSchedEnabled] = useState(false);
+  const [schedFrequency, setSchedFrequency] = useState<"daily" | "weekly" | "manual">("manual");
+  const [schedDaysOfWeek, setSchedDaysOfWeek] = useState<number[]>([1, 3, 5]);
+  const [schedPreferredHour, setSchedPreferredHour] = useState(9);
+  const [schedWeeklyQuota, setSchedWeeklyQuota] = useState(5);
+  const [schedMaxPendingReviews, setSchedMaxPendingReviews] = useState(2);
+  const [schedAutoAdvance, setSchedAutoAdvance] = useState(true);
 
   // Default selection
   useEffect(() => {
@@ -109,6 +128,122 @@ export default function JournalistProfileView({
 
     fetchSources();
   }, [selectedJournalist, articles]);
+
+  // Fetch schedule for selected journalist
+  useEffect(() => {
+    async function fetchSchedule() {
+      if (!selectedJournalist) {
+        setSchedule(null);
+        return;
+      }
+      setScheduleLoading(true);
+      setScheduleMessage(null);
+      try {
+        const { data, error } = await supabase
+          .from("journalist_schedules")
+          .select("*")
+          .eq("journalist_id", selectedJournalist.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          setSchedule(data);
+          setSchedEnabled(data.enabled);
+          setSchedFrequency(data.frequency);
+          setSchedDaysOfWeek(data.days_of_week || [1, 3, 5]);
+          setSchedPreferredHour(data.preferred_hour_utc);
+          setSchedWeeklyQuota(data.weekly_quota);
+          setSchedMaxPendingReviews(data.max_pending_reviews);
+          setSchedAutoAdvance(data.auto_advance);
+        } else {
+          setSchedule(null);
+          setSchedEnabled(false);
+          setSchedFrequency("manual");
+          setSchedDaysOfWeek([1, 3, 5]);
+          setSchedPreferredHour(9);
+          setSchedWeeklyQuota(5);
+          setSchedMaxPendingReviews(2);
+          setSchedAutoAdvance(true);
+        }
+      } catch (err) {
+        console.error("Error fetching schedule:", err);
+      } finally {
+        setScheduleLoading(false);
+      }
+    }
+
+    fetchSchedule();
+  }, [selectedJournalist]);
+
+  // Save Journalist Schedule & Quotas
+  const handleSaveSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedJournalist) return;
+    setIsSavingSchedule(true);
+    setScheduleMessage(null);
+
+    const payload = {
+      journalist_id: selectedJournalist.id,
+      enabled: schedEnabled,
+      frequency: schedFrequency,
+      days_of_week: schedDaysOfWeek,
+      preferred_hour_utc: schedPreferredHour,
+      weekly_quota: schedWeeklyQuota,
+      max_pending_reviews: schedMaxPendingReviews,
+      auto_advance: schedAutoAdvance,
+      timezone: "Africa/Johannesburg",
+      stop_status: "awaiting_admin_review"
+    };
+
+    try {
+      const { error } = await supabase
+        .from("journalist_schedules")
+        .upsert(payload, { onConflict: "journalist_id" });
+
+      if (error) throw error;
+      setScheduleMessage({ type: "success", text: "Schedule and quota parameters saved successfully!" });
+      
+      const { data: updatedSched } = await supabase
+        .from("journalist_schedules")
+        .select("*")
+        .eq("journalist_id", selectedJournalist.id)
+        .maybeSingle();
+      if (updatedSched) {
+        setSchedule(updatedSched);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setScheduleMessage({ type: "error", text: err.message || "Failed to save schedule settings." });
+    } finally {
+      setIsSavingSchedule(false);
+    }
+  };
+
+  // Trigger scheduler manually from frontend UI
+  const [isTriggeringScheduler, setIsTriggeringScheduler] = useState(false);
+  const handleTriggerSchedulerNow = async () => {
+    if (!confirm("Are you sure you want to trigger the automated scheduler now? This will execute all scheduled runs and batch process pending jobs immediately.")) {
+      return;
+    }
+    setIsTriggeringScheduler(true);
+    setScheduleMessage(null);
+    try {
+      const res = await callFunction<any>("agent-scheduler");
+      setScheduleMessage({
+        type: "success",
+        text: `Scheduler run completed successfully! Created: ${res.jobs_created || 0}, Processed: ${res.jobs_processed || 0} jobs.`
+      });
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (err: any) {
+      console.error(err);
+      setScheduleMessage({ type: "error", text: err.message || "Failed to trigger scheduler run." });
+    } finally {
+      setIsTriggeringScheduler(false);
+    }
+  };
 
   // Calculate status dynamically
   const getJournalistStatus = (j: Journalist) => {
@@ -709,14 +844,16 @@ export default function JournalistProfileView({
 
               {/* Tab Navigation */}
               <div className="px-6 border-b border-[#E5E2D9] bg-[#FDFDFB] flex gap-4">
-                {(["persona", "articles", "memory", "sources"] as const).map((tab) => {
+                {(["persona", "schedule", "articles", "memory", "sources"] as const).map((tab) => {
                   const label = tab === "persona" 
                     ? "Persona & Tone" 
-                    : tab === "articles" 
-                      ? `Articles (${articles.filter(a => a.journalist_id === selectedJournalist.id).length})` 
-                      : tab === "memory"
-                        ? `Memory (${memories.filter(m => m.journalist_id === selectedJournalist.id).length})`
-                        : `Connected Sources (${sources.length})`;
+                    : tab === "schedule"
+                      ? "Schedule & Quotas"
+                      : tab === "articles" 
+                        ? `Articles (${articles.filter(a => a.journalist_id === selectedJournalist.id).length})` 
+                        : tab === "memory"
+                          ? `Memory (${memories.filter(m => m.journalist_id === selectedJournalist.id).length})`
+                          : `Connected Sources (${sources.length})`;
                   
                   return (
                     <button
@@ -811,6 +948,253 @@ export default function JournalistProfileView({
                         <p className="text-xs text-slate-400 italic">No custom rules set.</p>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {/* TAB: Schedule & Automation */}
+                {activeTab === "schedule" && (
+                  <div className="space-y-6">
+                    {scheduleLoading ? (
+                      <div className="text-center py-8 text-xs text-slate-400 font-serif italic">
+                        Loading schedule data...
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSaveSchedule} className="space-y-6">
+                        {scheduleMessage && (
+                          <div className={`p-4 rounded-lg flex items-start gap-2.5 text-xs ${
+                            scheduleMessage.type === "success" 
+                              ? "bg-emerald-50 border border-emerald-200 text-emerald-800" 
+                              : "bg-rose-50 border border-rose-200 text-rose-800"
+                          }`}>
+                            <AlertCircle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
+                              scheduleMessage.type === "success" ? "text-emerald-600" : "text-rose-600"
+                            }`} />
+                            <p>{scheduleMessage.text}</p>
+                          </div>
+                        )}
+
+                        {/* Current Schedule Summary */}
+                        <div className="bg-[#F8F7F3] p-5 rounded-lg border border-[#E5E2D9] space-y-4">
+                          <h4 className="text-xs font-bold uppercase tracking-widest text-[#2D2926] font-mono flex items-center gap-1.5">
+                            <Calendar className="h-4.5 w-4.5 text-[#E27D60]" />
+                            Scheduler Parameters
+                          </h4>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-serif text-slate-600">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono block">Last Execution Run</span>
+                              <span className="font-bold text-[#2D2926]">
+                                {schedule?.last_run_at ? new Date(schedule.last_run_at).toLocaleString() : "Never run"}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono block">Next Scheduled Run</span>
+                              <span className="font-bold text-[#2D2926]">
+                                {schedule?.next_run_at ? new Date(schedule.next_run_at).toLocaleString() : "Not calculated"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* General Automation Toggle */}
+                        <div className="bg-white p-5 rounded-lg border border-[#E5E2D9] shadow-sm flex items-center justify-between">
+                          <div className="space-y-1">
+                            <h4 className="text-xs font-bold text-[#2D2926] uppercase tracking-wider font-mono">Enable Automation</h4>
+                            <p className="text-xs text-slate-500 font-serif">
+                              Toggle whether the automated scheduler runs for this journalist.
+                            </p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={schedEnabled} 
+                              onChange={(e) => setSchedEnabled(e.target.checked)}
+                              className="sr-only peer" 
+                            />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#E27D60]"></div>
+                          </label>
+                        </div>
+
+                        {/* Schedule Settings Card */}
+                        <div className="bg-white p-6 rounded-lg border border-[#E5E2D9] shadow-sm space-y-6">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#2D2926] font-mono">Run Constraints</h4>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Frequency */}
+                            <div>
+                              <label className="block text-[10px] font-bold font-mono uppercase tracking-wider text-[#2D2926] mb-1">
+                                Frequency
+                              </label>
+                              <select
+                                value={schedFrequency}
+                                onChange={(e: any) => setSchedFrequency(e.target.value)}
+                                className="w-full p-2.5 border border-[#E5E2D9] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#E27D60]"
+                              >
+                                <option value="manual">Manual (Triggered manually only)</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                              </select>
+                            </div>
+
+                            {/* Preferred Hour */}
+                            <div>
+                              <label className="block text-[10px] font-bold font-mono uppercase tracking-wider text-[#2D2926] mb-1 flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5 text-slate-400" />
+                                Preferred UTC Hour
+                              </label>
+                              <select
+                                value={schedPreferredHour}
+                                onChange={(e) => setSchedPreferredHour(parseInt(e.target.value))}
+                                className="w-full p-2.5 border border-[#E5E2D9] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#E27D60]"
+                              >
+                                {Array.from({ length: 24 }).map((_, i) => (
+                                  <option key={i} value={i}>
+                                    {String(i).padStart(2, "0")}:00 UTC
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Days of Week (Weekly only) */}
+                          {schedFrequency === "weekly" && (
+                            <div>
+                              <label className="block text-[10px] font-bold font-mono uppercase tracking-wider text-[#2D2926] mb-2">
+                                Days of Week
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                {[
+                                  { label: "Sun", val: 0 },
+                                  { label: "Mon", val: 1 },
+                                  { label: "Tue", val: 2 },
+                                  { label: "Wed", val: 3 },
+                                  { label: "Thu", val: 4 },
+                                  { label: "Fri", val: 5 },
+                                  { label: "Sat", val: 6 }
+                                ].map((day) => {
+                                  const isSelected = schedDaysOfWeek.includes(day.val);
+                                  return (
+                                    <button
+                                      key={day.val}
+                                      type="button"
+                                      onClick={() => {
+                                        if (isSelected) {
+                                          setSchedDaysOfWeek(schedDaysOfWeek.filter((d) => d !== day.val));
+                                        } else {
+                                          setSchedDaysOfWeek([...schedDaysOfWeek, day.val].sort());
+                                        }
+                                      }}
+                                      className={`px-3 py-1.5 text-xs rounded-lg border font-medium transition-colors ${
+                                        isSelected
+                                          ? "bg-[#E27D60] text-white border-[#E27D60]"
+                                          : "bg-white text-slate-600 border-[#E5E2D9] hover:bg-slate-50"
+                                      }`}
+                                    >
+                                      {day.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#E5E2D9]/60">
+                            {/* Weekly Quota */}
+                            <div>
+                              <label className="block text-[10px] font-bold font-mono uppercase tracking-wider text-[#2D2926] mb-1">
+                                Weekly Article Quota
+                              </label>
+                              <input
+                                type="number"
+                                min={1}
+                                max={50}
+                                value={schedWeeklyQuota}
+                                onChange={(e) => setSchedWeeklyQuota(parseInt(e.target.value) || 5)}
+                                className="w-full p-2.5 border border-[#E5E2D9] rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#E27D60]"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-1 font-serif">
+                                Maximum articles allowed to be generated within a rolling 7-day period.
+                              </p>
+                            </div>
+
+                            {/* Max Pending Reviews */}
+                            <div>
+                              <label className="block text-[10px] font-bold font-mono uppercase tracking-wider text-[#2D2926] mb-1">
+                                Max Pending Reviews
+                              </label>
+                              <input
+                                type="number"
+                                min={1}
+                                max={10}
+                                value={schedMaxPendingReviews}
+                                onChange={(e) => setSchedMaxPendingReviews(parseInt(e.target.value) || 2)}
+                                className="w-full p-2.5 border border-[#E5E2D9] rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#E27D60]"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-1 font-serif">
+                                Automation pauses if this many articles are currently awaiting admin feedback.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Pipeline Safety Override Card */}
+                        <div className="bg-rose-500/5 p-5 rounded-lg border border-rose-500/10 space-y-3">
+                          <h4 className="font-bold text-rose-800 text-[10px] uppercase tracking-widest font-mono flex items-center gap-2">
+                            <ShieldAlert className="h-5 w-5 text-rose-500" />
+                            Pipeline Safety Overrides (Admin Review Gate)
+                          </h4>
+                          <p className="text-slate-600 text-xs font-serif leading-relaxed">
+                            Automation limits ensure articles stop for human review. Scheduled articles will never auto-publish.
+                          </p>
+
+                          <div className="flex items-center justify-between text-xs font-serif text-slate-700 bg-white p-3.5 rounded border border-[#E5E2D9] mt-3">
+                            <span>Auto-advance pipeline to review desk</span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={schedAutoAdvance} 
+                                onChange={(e) => setSchedAutoAdvance(e.target.checked)}
+                                className="sr-only peer" 
+                              />
+                              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#E27D60]"></div>
+                            </label>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono pt-2">
+                            <div>
+                              <span className="text-[9px] uppercase text-slate-400 block font-bold">Review Lock Status</span>
+                              <span className="text-rose-800 font-bold">awaiting_admin_review</span>
+                            </div>
+                            <div>
+                              <span className="text-[9px] uppercase text-slate-400 block font-bold">Public Release Gate</span>
+                              <span className="text-rose-800 font-bold">Manual Publication Only</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Save & Run Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[#E5E2D9]/60">
+                          <button
+                            type="submit"
+                            disabled={isSavingSchedule}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-[#E27D60] hover:bg-[#E27D60]/90 disabled:opacity-50 rounded-lg shadow-sm transition-colors"
+                          >
+                            <Save className="h-4 w-4" />
+                            {isSavingSchedule ? "Saving Settings..." : "Save Schedule & Quota settings"}
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={handleTriggerSchedulerNow}
+                            disabled={isTriggeringScheduler}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#2D2926] bg-white border border-[#E5E2D9] hover:bg-slate-50 disabled:opacity-50 rounded-lg shadow-sm transition-all"
+                          >
+                            <Play className={`h-4 w-4 text-[#E27D60] ${isTriggeringScheduler ? "animate-pulse" : ""}`} />
+                            {isTriggeringScheduler ? "Processing Scheduler..." : "Force Trigger Scheduler Now"}
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 )}
 

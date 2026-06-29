@@ -30,6 +30,7 @@ export default function App() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [memories, setMemories] = useState<JournalistMemory[]>([]);
   const [logs, setLogs] = useState<AgentLog[]>([]);
+  const [schedulerRuns, setSchedulerRuns] = useState<any[]>([]);
   const [telegramConfig, setTelegramConfig] = useState({
     bot_token: "",
     chat_id: "",
@@ -101,6 +102,15 @@ export default function App() {
         .order('created_at', { ascending: false })
         .limit(30);
       if (errorL) throw errorL;
+
+      // 5. Fetch scheduler runs
+      const { data: runsData, error: runsError } = await supabase
+        .from('agent_runs')
+        .select('*')
+        .order('started_at', { ascending: false })
+        .limit(5);
+      if (runsError) throw runsError;
+      setSchedulerRuns(runsData || []);
 
       // Map logs to UI schema
       const mappedLogs: AgentLog[] = (dataL || []).map((l: any) => {
@@ -493,6 +503,8 @@ export default function App() {
             onTriggerBrainstorm={handleTriggerBrainstorm}
             onSelectArticle={handleSelectArticle}
             onResetDatabase={handleResetDatabase}
+            schedulerRuns={schedulerRuns}
+            onRefresh={fetchState}
           />
         );
       case "articles":

@@ -8,10 +8,14 @@ import {
   Activity, 
   RotateCcw, 
   FileEdit,
-  ArrowRight
+  ArrowRight,
+  Calendar,
+  Play,
+  AlertCircle
 } from "lucide-react";
 import { Article, Journalist, AgentLog, JournalistMemory } from "../types";
 import SafeImage from "./SafeImage";
+import { callFunction } from "../lib/clientApi";
 
 interface DashboardViewProps {
   articles: Article[];
@@ -21,6 +25,8 @@ interface DashboardViewProps {
   onTriggerBrainstorm: (topic?: string) => Promise<void>;
   onSelectArticle: (articleId: string) => void;
   onResetDatabase: () => Promise<void>;
+  schedulerRuns?: any[];
+  onRefresh?: () => Promise<void>;
 }
 
 export default function DashboardView({
@@ -30,11 +36,35 @@ export default function DashboardView({
   memories,
   onTriggerBrainstorm,
   onSelectArticle,
-  onResetDatabase
+  onResetDatabase,
+  schedulerRuns = [],
+  onRefresh
 }: DashboardViewProps) {
   const [customTopic, setCustomTopic] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  const [isTriggering, setIsTriggering] = useState(false);
+  const [triggerError, setTriggerError] = useState<string | null>(null);
+  const [triggerSuccess, setTriggerSuccess] = useState<string | null>(null);
+
+  const handleManualTrigger = async () => {
+    setIsTriggering(true);
+    setTriggerError(null);
+    setTriggerSuccess(null);
+    try {
+      const res = await callFunction<any>("agent-scheduler");
+      setTriggerSuccess(`Run complete. Processed ${res.jobs_processed || 0} jobs.`);
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (err: any) {
+      console.error(err);
+      setTriggerError(err.message || "Failed to execute scheduler run.");
+    } finally {
+      setIsTriggering(false);
+    }
+  };
 
   const stats = {
     total: articles.length,
@@ -275,6 +305,80 @@ export default function DashboardView({
               </div>
             </div>
           )}
+
+          {/* Scheduled Automation Card */}
+          <div className="bg-white p-5 rounded border border-[#E5E2D9] shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E5E2D9]">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#2D2926] font-mono flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-[#E27D60]" />
+                Scheduled Automation
+              </h3>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            </div>
+
+            {triggerError && (
+              <div className="p-2.5 rounded bg-rose-50 border border-rose-200 text-rose-800 text-[10px] flex items-start gap-1.5 font-serif">
+                <AlertCircle className="h-3.5 w-3.5 text-rose-600 flex-shrink-0 mt-0.5" />
+                <span>{triggerError}</span>
+              </div>
+            )}
+
+            {triggerSuccess && (
+              <div className="p-2.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] flex items-start gap-1.5 font-serif">
+                <CheckCircle className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <span>{triggerSuccess}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-serif">Automation Cron:</span>
+                <span className="font-mono text-slate-600 font-bold bg-slate-50 border border-[#E5E2D9]/40 px-1.5 py-0.5 rounded text-[10px]">@hourly (Netlify)</span>
+              </div>
+
+              <div className="text-[11px] font-serif text-slate-500 leading-normal bg-[#F8F7F3] p-3 rounded border border-[#E5E2D9]/60 space-y-2">
+                <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider">
+                  <span>Recent Run Log</span>
+                  <span>Jobs (Cr / Run)</span>
+                </div>
+                {schedulerRuns.length === 0 ? (
+                  <p className="text-slate-400 italic text-center py-1">No execution history recorded.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-[100px] overflow-y-auto pr-0.5">
+                    {schedulerRuns.map((run: any) => (
+                      <div key={run.id} className="flex items-center justify-between font-mono text-[10px]">
+                        <span className="text-slate-600 truncate max-w-[120px]" title={new Date(run.started_at).toLocaleString()}>
+                          {new Date(run.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({run.run_type})
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-[#2D2926]">
+                            {run.jobs_created}/{run.jobs_processed}
+                          </span>
+                          <span className={`h-1.5 w-1.5 rounded-full ${
+                            run.status === "completed" ? "bg-emerald-500" :
+                            run.status === "failed" ? "bg-rose-500" : "bg-amber-500 animate-pulse"
+                          }`} title={run.status} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleManualTrigger}
+                disabled={isTriggering}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#E27D60] hover:bg-[#E27D60]/90 disabled:opacity-50 rounded shadow-sm transition-colors"
+              >
+                <Play className={`h-3.5 w-3.5 ${isTriggering ? "animate-pulse" : ""}`} />
+                {isTriggering ? "Triggering Run..." : "Trigger Scheduler Run"}
+              </button>
+            </div>
+          </div>
 
           {/* Live Agent Logs */}
           <div className="bg-white p-5 rounded border border-[#E5E2D9] shadow-sm flex flex-col h-[320px] space-y-3">

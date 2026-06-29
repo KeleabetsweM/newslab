@@ -132,3 +132,50 @@ export interface DBState {
     is_active: boolean;
   };
 }
+
+export interface JournalistSchedule {
+  id: string;
+  journalist_id: string;
+  enabled: boolean;
+  frequency: 'daily' | 'weekly' | 'manual';
+  days_of_week: number[];
+  preferred_hour_utc: number;
+  timezone: string;
+  weekly_quota: number;
+  max_pending_reviews: number;
+  auto_advance: boolean;
+  stop_status: string;
+  last_run_at: string | null;
+  next_run_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgentJob {
+  id: string;
+  job_type: 'create_article' | 'run_pipeline_step';
+  journalist_id: string;
+  article_id: string | null;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  attempts: number;
+  priority: number;
+  error: string | null;
+  locked_at: string | null;
+  scheduled_for: string;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgentRun {
+  id: string;
+  run_type: 'scheduler' | 'manual';
+  status: 'running' | 'completed' | 'failed';
+  jobs_created: number;
+  jobs_processed: number;
+  error: string | null;
+  notes: string | null;
+  started_at: string;
+  finished_at: string | null;
+}
+

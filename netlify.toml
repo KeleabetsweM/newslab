@@ -7,6 +7,9 @@
   node_bundler = "esbuild"
   included_files = []
 
+[functions.agent-scheduler]
+  schedule = "@hourly"
+
 [functions."___netlify-server-handler"]
   node_bundler = "nft"
 
