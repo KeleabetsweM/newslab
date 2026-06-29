@@ -10,15 +10,26 @@ export async function generateFeaturedImage(prompt: string, articleId: string) {
   if (provider === 'openai' && process.env.OPENAI_API_KEY) {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const result = await client.images.generate({
-      model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
+      model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2',
       prompt,
-      size: '1024x1024'
+      size: '1024x1024',
+      response_format: 'b64_json'
     } as any);
-    const b64 = (result.data?.[0] as any)?.b64_json;
-    if (!b64) throw new Error('OpenAI image response did not include b64_json.');
-    buffer = Buffer.from(b64, 'base64');
-    contentType = 'image/png';
-    fileExt = 'png';
+    const b64 = result.data?.[0]?.b64_json;
+    const url = result.data?.[0]?.url;
+    if (b64) {
+      buffer = Buffer.from(b64, 'base64');
+      contentType = 'image/png';
+      fileExt = 'png';
+    } else if (url) {
+      const imgRes = await fetch(url);
+      if (!imgRes.ok) throw new Error(`Failed to fetch image from URL: ${imgRes.statusText}`);
+      buffer = Buffer.from(await imgRes.arrayBuffer());
+      contentType = imgRes.headers.get('content-type') || 'image/png';
+      fileExt = contentType.split('/')[1] || 'png';
+    } else {
+      throw new Error('OpenAI image response did not include b64_json or url.');
+    }
   } else {
     const svg = createEditorialPlaceholderSvg(prompt);
     buffer = Buffer.from(svg, 'utf8');
