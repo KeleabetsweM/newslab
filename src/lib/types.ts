@@ -8,6 +8,8 @@ export interface Journalist {
   personality: string;
   avatar: string;
   created_at: string;
+  is_active?: boolean;
+  rules?: string[];
 }
 
 export type ArticleStatus =
