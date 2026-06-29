@@ -256,6 +256,9 @@ export default function ArticleDetailView({
     setIsStepping(true);
     // Loop through steps until we hit awaiting_admin_review
     let currentIdx = getCurrentStepIndex();
+    if (article.status === "revision_requested") {
+      currentIdx = 0;
+    }
     while (currentIdx !== -1 && currentIdx < pipelineSteps.length - 1) {
       await onRunPipelineStep(article.id);
       currentIdx = currentIdx + 1;

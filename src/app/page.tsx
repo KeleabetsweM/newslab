@@ -354,6 +354,19 @@ export default function App() {
         await callFunction('approve-article', { article_id: articleId, feedback });
       } else if (status === 'revision_requested') {
         await callFunction('request-revision', { article_id: articleId, feedback });
+        await fetchState();
+
+        // Auto-run pipeline step-by-step until we return to awaiting_admin_review
+        let currentStatus = 'revision_requested';
+        while (
+          currentStatus !== 'awaiting_admin_review' && 
+          currentStatus !== 'approved_sandbox' && 
+          currentStatus !== 'rejected'
+        ) {
+          const res = await callFunction<{ status: string }>('run-pipeline-step', { id: articleId });
+          currentStatus = res.status;
+          await fetchState();
+        }
       } else {
         const { error } = await supabase.from('admin_feedback').insert({
           article_id: articleId,
@@ -378,6 +391,19 @@ export default function App() {
         await callFunction('approve-article', { article_id: articleId, feedback: 'Approved via Telegram' });
       } else if (action === 'revision') {
         await callFunction('request-revision', { article_id: articleId, feedback: revisionText || 'Revision requested via Telegram' });
+        await fetchState();
+
+        // Auto-run pipeline step-by-step until we return to awaiting_admin_review
+        let currentStatus = 'revision_requested';
+        while (
+          currentStatus !== 'awaiting_admin_review' && 
+          currentStatus !== 'approved_sandbox' && 
+          currentStatus !== 'rejected'
+        ) {
+          const res = await callFunction<{ status: string }>('run-pipeline-step', { id: articleId });
+          currentStatus = res.status;
+          await fetchState();
+        }
       } else if (action === 'regenerate') {
         await callFunction('regenerate-image', { article_id: articleId, feedback: 'Regeneration requested via Telegram' });
       } else if (action === 'reject') {
