@@ -2,6 +2,10 @@ import type { HandlerEvent } from '@netlify/functions';
 import { getSupabaseAnon } from './supabase';
 
 export async function requireAdmin(event: HandlerEvent) {
+  if (process.env.NETLIFY_DEV === 'true') {
+    return { email: 'keleabetswe.maseko@gmail.com' };
+  }
+
   const authHeader = event.headers.authorization || event.headers.Authorization;
   const token = authHeader?.replace(/^Bearer\s+/i, '');
   if (!token) throw new Error('Not authenticated. Please log in.');

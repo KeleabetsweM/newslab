@@ -9,6 +9,33 @@ import OpenAI from 'openai';
 async function callAI(systemInstruction: string, prompt: string, expectedSchema?: any): Promise<string> {
   const provider = (process.env.AI_PROVIDER || 'mock').toLowerCase();
 
+  let geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey || geminiKey.startsWith('eyJhb')) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const localEnvPath = path.resolve(process.cwd(), '.env.local');
+      if (fs.existsSync(localEnvPath)) {
+        const content = fs.readFileSync(localEnvPath, 'utf8');
+        const match = content.match(/GEMINI_API_KEY=([^\n\r]+)/);
+        if (match) geminiKey = match[1].trim();
+      }
+      if (!geminiKey || geminiKey.startsWith('eyJhb')) {
+        const envPath = path.resolve(process.cwd(), '.env');
+        if (fs.existsSync(envPath)) {
+          const content = fs.readFileSync(envPath, 'utf8');
+          const match = content.match(/GEMINI_API_KEY=([^\n\r]+)/);
+          if (match) geminiKey = match[1].trim();
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load local env key:', e);
+    }
+  }
+
+  console.log("callAI - provider:", provider);
+  console.log("callAI - resolved GEMINI_API_KEY starts with:", geminiKey ? geminiKey.substring(0, 7) : 'none');
+
   if (provider === 'openai' && process.env.OPENAI_API_KEY) {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await (client.responses as any).create({
@@ -22,9 +49,9 @@ async function callAI(systemInstruction: string, prompt: string, expectedSchema?
     return response.output_text;
   }
 
-  if (provider === 'gemini' && process.env.GEMINI_API_KEY) {
+  if (provider === 'gemini' && geminiKey) {
     const model = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -35,7 +62,11 @@ async function callAI(systemInstruction: string, prompt: string, expectedSchema?
         } : undefined
       })
     });
-    if (!res.ok) throw new Error(`Gemini request failed: ${res.status}`);
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error("Gemini API Error Body:", errBody);
+      throw new Error(`Gemini request failed: ${res.status} - ${errBody}`);
+    }
     const payload = await res.json() as any;
     return payload.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
   }
